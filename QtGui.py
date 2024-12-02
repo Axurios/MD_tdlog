@@ -1,25 +1,20 @@
 import os
 import pickle
 import pandas as pd
+
 from PyQt5.QtWidgets import (
-    QWidget,
-    QLabel,
-    QPushButton,
-    QVBoxLayout,
-    QSlider,
-    QTextEdit,
-    QFileDialog,
-    QMessageBox
+    QWidget, QLabel, QPushButton, QVBoxLayout, QSlider, QTextEdit, QFileDialog, QMessageBox
 )
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFont
+
 import matplotlib
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas # noqa:
-from ase import Atoms
-from typing import TypedDict, List, Dict
-# Initialize matplotlib for PyQt5
 matplotlib.use("Qt5Agg")
+# from ase import Atoms
+# from typing import TypedDict, List, Dict
+from dataHolder import DataHolder
 
 
 class GUI(QWidget):
@@ -27,27 +22,31 @@ class GUI(QWidget):
         super().__init__()
 
         # Set window title and initialize variables
-        self.setWindowTitle("ATK title")
-        self.file_name = "No file selected"
-        self.init_aspect_ratio = None  # To store the initial aspect ratio
-
+        self.setWindowTitle("MD Long-term stability")
+        
+        self.data = DataHolder()
+        
+        
+        # self.file_name = "No file selected"
+        # self.init_aspect_ratio = None  # To store the initial aspect ratio
         # Create the main layout
-        self.layout = QVBoxLayout()
-        self.setLayout(self.layout)
 
         # Initialize UI components
         self.initUI()
+
         self.add_percentage_slider()
         self.add_plot()
 
     def initUI(self):
+        self.layout = QVBoxLayout()
+        self.setLayout(self.layout)
         # Label to display the selected file name
         self.file_label = QLabel("No file selected", self)
-        self.file_label.setFont(QFont("Arial", 10))
+        self.file_label.setFont(QFont("Calibri", 10))
         self.layout.addWidget(self.file_label)
 
         # Button to open file dialog
-        self.button = QPushButton("Select CSV or PKL File", self)
+        self.button = QPushButton("Select data file", self)
         self.button.clicked.connect(self.select_file)
         self.layout.addWidget(self.button)
 

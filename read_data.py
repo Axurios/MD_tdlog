@@ -123,29 +123,34 @@ E_tot_ml_sorted, E_tot_ml_cdf = cdf(E_tot_ml_array)
 
 
 eV_to_J = 1.602176634e-19
-E_eV = np.linspace(0, 1, 1000)  # Energy range from 0 to 1 eV
+E_eV = np.linspace(0, 1, len(energies_sorted))  # Energy range from 0 to 1 eV
+
 E = E_eV * eV_to_J  # Convert to Joules
 Tb = 2000
 bolcdf = boltzmann_cdf(E, Tb)
 ene_length = abs((energies_.max()) - (energies_.min()))
 E_transformed = (E_eV)*ene_length  +energies_.min() 
-print("Bolt energies range:", E_transformed.min(), E_transformed.max())
+# print("Bolt energies range:", E_transformed.min(), E_transformed.max())
 # Calculate theoretical Boltzmann CDF
 # Tb = 200  # Temperature in Kelvin # Tb = 300
 # # theoretical_energies, theoretical_cdf = theoretical_boltzmann_cdf(energies_, Tb)
 # bolt_cdf = boltzmann_cdf(energies_, Tb)
 # Plot the CDFs
+
+
 plt.figure(figsize=(10, 6))
 plt.plot(E_transformed, bolcdf, label=f"boltzmann cdf à {Tb}", color='purple')
 plt.plot(E_tot_ml_sorted, E_tot_ml_cdf, label='E_tot_ml CDF', color='orange')
 plt.plot(energies_sorted, energies_cdf, label='Energy CDF', color='blue')
 # plt.plot(energies_, bolt_cdf, label=f'Theoretical Boltzmann CDF (T={Tb}K)', #  color='red', linestyle='--')
+
 plt.xlabel('Energy (eV)')
 plt.ylabel('CDF')
 plt.title('Comparison of Energy Distributions')
 plt.legend()
 plt.grid(True)
 plt.show()
+
 
 
 def KL_boltzmann(energies: List[float], temperature: float) -> float:
@@ -194,6 +199,90 @@ print(f"Boltzmannian score (KL divergence): {boltzmann_score_dataset}")
 print(f"Boltzmannian score (KL divergence): {boltzmann_score_simulation}")
 
 
+
+## Get boltzmann from initial data :
+# best Kolmogorov-Smirnov test score (max likelyhood conditionned to boltzmann) :
+# Calculate CDFs
+# energies_sorted, energies_cdf = cdf(energies_)
+# E_tot_ml_sorted, E_tot_ml_cdf = cdf(E_tot_ml_array)
+
+# eV_to_J = 1.602176634e-19
+# E_eV = np.linspace(0, 1, 1000)  # Energy range from 0 to 1 eV
+
+# E = E_eV * eV_to_J  # Convert to Joules
+
+Tb = 2000
+# print( np.shape(energies_cdf))
+# print( np.shape(E))
+ene_length = abs((energies_.max()) - (energies_.min()))
+E_transformed = (E_eV)*ene_length  +energies_.min() 
+def boltCDF(T):
+    return boltzmann_cdf(E,T)
+# bolcdf = boltzmann_cdf(E, Tb)
+def objective(t):
+    return np.sum( abs(boltCDF(t) - energies_cdf) )
+
+from scipy.optimize import minimize
+result = minimize(objective, x0=2000)
+print(f"optimal temperature is {result.x[0]}")
+plt.figure(figsize=(10, 6))
+plt.plot(E_transformed, boltzmann_cdf(E, result.x[0]), label=f"boltzmann cdf à {result.x[0]}", color='purple')
+plt.plot(E_tot_ml_sorted, E_tot_ml_cdf, label='E_tot_ml CDF', color='orange')
+plt.plot(energies_sorted, energies_cdf, label='Energy CDF', color='blue')
+plt.xlabel('Energy (eV)')
+plt.ylabel('CDF')
+plt.title('Comparison of Energy Distributions')
+plt.legend()
+plt.grid(True)
+plt.show()
+
+
+
+
+
+
+
+
+# # Objective function to minimize the difference between empirical and theoretical CDF
+# def objective_function(params, energies_sorted, empirical_cdf_vals):
+#     T = params[0]  # Temperature
+#     if T <= 0:  # Ensure valid temperature
+#         return np.inf
+#     # Generate the theoretical CDF for the current temperature
+#     theoretical_cdf = boltzmann_cdf(energies_sorted, T)
+#     # Compute the sum of squared differences between the empirical and theoretical CDFs
+#     return np.sum((theoretical_cdf - empirical_cdf_vals)**2)
+
+# # Generate empirical CDF values
+# empirical_cdf_vals = energies_cdf
+
+# # Initial guess for temperature
+# initial_guess = [1000]  # Temperature in Kelvin
+# from scipy.optimize import minimize
+# # Minimize the objective function
+# result = minimize(
+#     objective_function, initial_guess, 
+#     args=(energies_sorted, empirical_cdf_vals), 
+#     bounds=[(1e-6, None)],  # Temperature must be positive
+#     method='L-BFGS-B'
+# )
+
+# # Optimal temperature
+# T_opt = result.x[0]
+
+# # Generate theoretical CDF with the optimized temperature
+# theoretical_cdf = boltzmann_cdf(energies_sorted, T_opt)
+
+# # Plotting the CDFs
+# plt.figure(figsize=(8, 6))
+# plt.plot(energies_sorted, empirical_cdf_vals, label='Empirical CDF', color='blue')
+# plt.plot(energies_sorted, theoretical_cdf, label=f'Optimized Boltzmann CDF (T={T_opt:.2f} K)', color='orange')
+# plt.xlabel('Energy')
+# plt.ylabel('CDF')
+# plt.title('Empirical vs Optimized Boltzmann CDF')
+# plt.legend()
+# plt.grid()
+# plt.show()
 
 
 

@@ -1,13 +1,9 @@
 import os
 from tkinter import filedialog
-
-
-import os
-from tkinter import filedialog, Tk
 import subprocess
 import sys
 
-def check_requirements(requirements_file="MD_tdlog/requirements.txt"):
+def check_requirements(requirements_file="requirements.txt"):
     try:
         with open(requirements_file) as f:
             required_packages = [
@@ -47,10 +43,6 @@ def check_requirements(requirements_file="MD_tdlog/requirements.txt"):
         print(f"Requirements file '{requirements_file}' not found.")
         os._exit(1)
 
-if __name__ == "__main__":
-    # Example usage
-    check_requirements("MD_tdlog/requirements.txt")
-
 
 # Modified select_file function
 def select_file(file_name_var):
@@ -62,3 +54,8 @@ def select_file(file_name_var):
         file_name_var.set(file_path)  # Update the displayed filename # noqa:
         return file_path  # Return the file path to the caller
     return None
+
+
+if __name__ == "__main__":
+    # Example usage
+    check_requirements("MD_tdlog/requirements.txt")
