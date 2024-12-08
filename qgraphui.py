@@ -1,13 +1,20 @@
 import os
 import matplotlib
 from PyQt5.QtWidgets import (
-    QWidget, QLabel, QPushButton, QVBoxLayout, QTextEdit, QFileDialog, QMessageBox
+    QWidget,
+    QLabel,
+    QPushButton,
+    QVBoxLayout,
+    QTextEdit,
+    QFileDialog,
+    QMessageBox,
 )
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFont
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from dataHolder import DataHolder
+
 matplotlib.use("Qt5Agg")
 
 
