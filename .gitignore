@@ -2,3 +2,4 @@
 __pycache__/
 .pytest_cache/
 tets/__pycache__/
+*.pkl
