@@ -1,6 +1,6 @@
 import os
 import pickle
-import pandas as pd
+#import pandas as pd
 import numpy as np
 from PyQt5.QtWidgets import (
     QWidget,
