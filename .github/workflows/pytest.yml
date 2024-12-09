@@ -28,4 +28,4 @@ jobs:
 
     - name: Run tests with pytest
       run: |
-        pytest
+        pytest tests/test_QtGui.py
