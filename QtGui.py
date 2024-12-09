@@ -1,3 +1,4 @@
+import os
 import pickle
 import pandas as pd
 import numpy as np
@@ -24,8 +25,8 @@ from matplotlib.backends.backend_qt5agg import (
 )  # noqa:
 
 matplotlib.use("Qt5Agg")
-# from ase import Atoms
-# from typing import TypedDict, List, Dict
+from ase import Atoms
+from typing import TypedDict, List, Dict
 from dataHolder import DataHolder
 
 

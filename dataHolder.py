@@ -1,11 +1,11 @@
 import pickle
 import numpy as np
-#import os
+import os
 from ase import Atoms
 from typing import TypedDict, List, Dict
-#from scipy.stats import entropy
-#from scipy.constants import Boltzmann
-#import matplotlib.pyplot as plt
+from scipy.stats import entropy
+from scipy.constants import Boltzmann
+import matplotlib.pyplot as plt
 
 
 class MDData(TypedDict):
