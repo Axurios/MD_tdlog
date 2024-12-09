@@ -2,12 +2,7 @@ name: Python CI
 
 on:
   push:
-    branches:
-      - main
-      - 'feature/*'
   pull_request:
-    branches:
-      - main
 
 jobs:
   test:
