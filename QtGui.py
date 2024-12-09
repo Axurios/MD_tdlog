@@ -13,6 +13,7 @@ from PyQt5.QtWidgets import (
     QMessageBox,
     QHBoxLayout,
     QSpinBox,
+    QInputDialog
 )
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFont
@@ -98,24 +99,6 @@ class GUI(QWidget):
         self.data_display.setFixedHeight(150)
         self.layout.addWidget(self.data_display)
 
-    # def initUI(self):
-    #     self.layout = QVBoxLayout()
-    #     self.setLayout(self.layout)
-    #     # Label to display the selected file name
-    #     self.file_label = QLabel("No file selected", self)
-    #     self.file_label.setFont(QFont("Calibri", 10))
-    #     self.layout.addWidget(self.file_label)
-
-    #     # Button to open file dialog
-    #     self.button = QPushButton("Select data file", self)
-    #     self.button.clicked.connect(self.select_file)
-    #     self.layout.addWidget(self.button)
-
-    # TextEdit widget to display the head of the CSV data
-    # self.data_display = QTextEdit(self)
-    # self.data_display.setReadOnly(True)
-    # self.data_display.setFixedHeight(150)
-    # self.layout.addWidget(self.data_display)
 
     def add_percentage_slider(self):
         # Slider to select a percentage (1 to 100)
@@ -170,7 +153,8 @@ class GUI(QWidget):
 
         try:
             if file_type == "md":
-                self.data.load_md_data(file_path)
+                descriptor, ok = QInputDialog.getText(None, "Input", "Enter your descriptor string:")
+                self.data.load_md_data(file_path, str(descriptor))
                 self.md_file_label.setText(os.path.basename(file_path))
                 self.display_md_data()
             elif file_type == "theta":
@@ -189,19 +173,6 @@ class GUI(QWidget):
                 self, "Error", f"Failed to load {file_type.upper()} data: {str(e)}"
             )
 
-    # def select_file(self):
-    #     file_path, _ = QFileDialog.getOpenFileName(self,"Select File", "", "Data Files (*.csv *.pkl);;CSV Files (*.csv);;Pickle Files (*.pkl)" )
-
-    # if file_path:
-    #     self.file_name = os.path.basename(file_path)
-    #     self.file_label.setText(self.file_name)  # Update label with file name
-
-    # # Check file extension and load accordingly
-    # file_extension = os.path.splitext(file_path)[1].lower()
-    # if file_extension == '.csv':
-    #     self.load_data(file_path)
-    # elif file_extension == '.pkl':
-    #     self.load_pickle_data(file_path)
 
     def compute_and_plot_distribution(self):
         """Compute energy distributions and CDFs."""
@@ -253,25 +224,7 @@ class GUI(QWidget):
         except Exception as e:
             QMessageBox.critical(self, "Computation Error", str(e))
 
-    def load_md_data(self, file_path: str):
-        """Load MD data from a file."""
-        try:
-            with open(file_path, "rb") as f:
-                loaded_data = pickle.load(f)
-                if not isinstance(loaded_data, dict):
-                    raise ValueError("Invalid MD data format: Expected a dictionary.")
-                # Ensure all required fields are present
-                for key, val in loaded_data.items():
-                    if (
-                        not isinstance(val, dict)
-                        or "atoms" not in val
-                        or "energies" not in val
-                    ):
-                        raise ValueError(f"Invalid MD data for key {key}.")
-                self.md_data = loaded_data
-                self._extract_energies()
-        except Exception as e:
-            raise ValueError(f"Error loading MD data: {e}")
+    
 
     def load_theta(self, file_path: str):
         """Load Theta data from a file."""
@@ -344,65 +297,6 @@ class GUI(QWidget):
 
         self.data_display.setPlainText(display_text)
 
-    # def load_data(self, file_path):
-    #     try:
-    #         # Load the .csv file
-    #         df = pd.read_csv(file_path)
-    #         # Get the head of the dataframe
-    #         data_head = df.head().to_string(index=False)
-    #         # Update the text widget with the data head
-    #         self.data_display.setPlainText(data_head)
-    #     except Exception as e:
-    #         # If there is an error, display it in the text widget
-    #         self.data_display.setPlainText(f"Error loading file: {e}")
-
-    # def load_pickle_data(self, file_path):
-    #     try:
-    #         # Load the .pkl file
-    #         with open(file_path, 'rb') as file:
-    #             data = pickle.load(file)
-
-    #         # Check if it's md_data or theta
-    #         if isinstance(data, dict) and any(isinstance(v, dict) and 'atoms' in v for v in data.values()):
-    #             # This is md_data
-    #             display_text = []
-    #             for key, val in data.items():
-    #                 atoms = val['atoms']
-    #                 energies = val['energies']
-
-    #                 # Show information about first few entries
-    #                 display_text.append(f"\nDataset: {key}")
-    #                 display_text.append(f"Number of configurations: {len(atoms)}")
-
-    #                 # Show details of first configuration
-    #                 if len(atoms) > 0:
-    #                     first_atoms = atoms[0]
-    #                     display_text.append("\nFirst configuration details:")
-    #                     display_text.append(f"Number of atoms: {len(first_atoms)}")
-    #                     display_text.append(f"Energy: {energies[0]:.6f}")
-
-    #                     # Get descriptor information
-    #                     desc = first_atoms.get_array('milady-descriptors')
-    #                     grad_desc = first_atoms.get_array('milady-descriptors-forces')
-    #                     display_text.append(f"Descriptor shape: {desc.shape}")
-    #                     display_text.append(f"Gradient descriptor shape: {grad_desc.shape}")
-
-    #             self.data_display.setPlainText("\n".join(display_text))
-
-    #         elif isinstance(data, dict) and 'coef' in data and 'intercept' in data:
-    #             # This is theta data
-    #             display_text = [
-    #                 "Theta Parameters:",
-    #                 f"Coefficient shape: {data['coef'].shape}",
-    #                 f"Intercept: {data['intercept']:.6f}"
-    #             ]
-    #             self.data_display.setPlainText("\n".join(display_text))
-
-    #         else:
-    #             self.data_display.setPlainText("Unknown pickle file format")
-
-    #     except Exception as e:
-    #         self.data_display.setPlainText(f"Error loading file: {str(e)}")
 
     def plot_graph(self):
         # Example data for plotting
@@ -414,3 +308,15 @@ class GUI(QWidget):
         ax = self.figure.add_subplot(111)
         ax.plot(X, Y)
         self.canvas.draw()
+
+
+def check_md_format(data, check_in_atoms = []):
+    for key, val in data.items():
+        if ("atoms" not in val or "energies" not in val):
+            raise ValueError(f"Invalid MD data for key {key}.")
+    atom1 = list(data("atoms"))[0]
+    for array in check_in_atoms : 
+        if not atom1.has(array) :
+            raise ValueError(f"Invalid data for atoms in MD : no {array} found")
+
+

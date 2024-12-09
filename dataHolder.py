@@ -33,12 +33,13 @@ class DataHolder:
         self.plot_data = None
         self.metadata = None
 
-    def load_md_data(self, file_path: str):
+    def load_md_data(self, file_path: str, descriptor: str):
         """
         Load Molecular Dynamics data from a pickle file.
 
         Args:
             file_path (str): Path to the pickle file containing MD data
+            descriptor (str) : key for descriptor in atoms
 
         Returns:
             dict: Metadata about the loaded MD data
@@ -47,11 +48,7 @@ class DataHolder:
             with open(file_path, "rb") as f:
                 self.md_data = pickle.load(f)
 
-            # Validate MD data structure
-            if not self.md_data or not all(
-                "atoms" in val and "energies" in val for val in self.md_data.values()
-            ):
-                raise ValueError("Invalid MD data format")
+            check_md_format(self.md_data, [descriptor])
 
             # Extract energies
             self._extract_energies()
@@ -72,23 +69,19 @@ class DataHolder:
         Returns:
             dict: Metadata about the loaded Theta parameters
         """
-        try:
-            with open(file_path, "rb") as f:
-                self.theta = pickle.load(f)
-
+        
+        with open(file_path, "rb") as f:
+            self.theta = pickle.load(f)
             # Validate Theta data structure
-            if (
-                not isinstance(self.theta, dict)
-                or "coef" not in self.theta
-                or "intercept" not in self.theta
-            ):
-                raise ValueError("Invalid Theta data format")
+        if (
+            not isinstance(self.theta, dict)
+            or "coef" not in self.theta
+            or "intercept" not in self.theta
+        ):
+            raise ValueError("Invalid Theta data format")
 
             # Prepare metadata for display
-            self.metadata = self._get_theta_metadata()
-
-        except Exception as e:
-            raise ValueError(f"Error loading Theta data: {e}")
+        self.metadata = self._get_theta_metadata()
 
     def _get_md_metadata(self):
         """
@@ -161,3 +154,16 @@ class DataHolder:
         self.all_energies = [
             ene for key, val in self.md_data.items() for ene in val["energies"]
         ]
+
+
+def check_md_format(data, check_in_atoms= []):  #add check type of atoms elements (Atoms from ase)
+    if (not isinstance(data, dict)) :
+        raise ValueError("data is not pickle dictionnary")
+    for key, val in data.items():
+        if ('atoms' not in val or "energies" not in val):
+            raise ValueError(f"Invalid MD data for key {key}.")
+    atom1 = data[list(data.keys())[0]]['atoms'][0]
+    for array in check_in_atoms: 
+        if not atom1.has(array) :
+            raise ValueError(f"Invalid data for atoms in MD : no descriptor named {array} found")
+

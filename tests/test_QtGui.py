@@ -1,9 +1,11 @@
 import os
 import pickle
 import pytest
+from ase import Atoms
 from unittest.mock import MagicMock, patch
 from PyQt5.QtWidgets import QApplication
 from QtGui import GUI  # Replace with your actual module name
+import numpy as np
 
 
 # Create a QApplication instance for testing GUI
@@ -12,16 +14,30 @@ def app():
     return QApplication([])
 
 
+descriptor = "descriptor"
+
+
 # Fixture to create sample MD data
 @pytest.fixture
-def sample_md_data():
+def sample_md_data(descriptor: str):
+    """
+    Fixture providing sample MD data for testing.
+    Each 'atoms' entry is an ASE Atoms object with a 'descriptor' array.
+    """
+    # Create an Atoms object
+    atoms1 = Atoms(positions=[[0, 0, 0], [1, 1, 1]], symbols=["H", "H"])
+    atoms2 = Atoms(positions=[[0, 0, 0], [2, 2, 2]], symbols=["O", "O"])
+
+    # Add a 'descriptor' array to each Atoms object
+    atoms1.new_array(descriptor, np.array([[1.0, 0.5], [0.2, 0.8]]))
+    atoms2.new_array(descriptor, np.array([[0.3, 0.7], [0.6, 0.4]]))
+    # Sample MD data structure
     return {
         "dataset1": {
-            "atoms": [{"id": 1, "coords": [0, 0, 0]}],
-            "energies": [-0.5, 0.0, 0.5],
+            "atoms": [atoms1, atoms2],
+            "energies": [-0.5, 0.5],
         }
     }
-
 
 # Fixture to create sample Theta data
 @pytest.fixture
@@ -33,7 +49,7 @@ def sample_theta_data():
 
 
 # Test for loading MD data
-def test_load_md_data(app, sample_md_data, tmp_path):
+def test_load_md_data(app, sample_md_data, tmp_path, descriptor):
     # Create a temporary file for MD data
     md_file = tmp_path / "md_data.pkl"
     with open(md_file, "wb") as f:
