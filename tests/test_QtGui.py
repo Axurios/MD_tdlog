@@ -1,10 +1,10 @@
-import os
+#import os
 import pickle
 import pytest
 from ase import Atoms
-from unittest.mock import MagicMock, patch
+#from unittest.mock import MagicMock, patch
 from PyQt5.QtWidgets import QApplication
-from QtGui import GUI  # Replace with your actual module name
+#from QtGui import GUI  # Replace with your actual module name
 import numpy as np
 from dataHolder import DataHolder
 

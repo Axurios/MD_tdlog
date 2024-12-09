@@ -1,7 +1,7 @@
 import os
-import pickle
+#import pickle
 #import pandas as pd
-import numpy as np
+#import numpy as np
 from PyQt5.QtWidgets import (
     QWidget,
     QLabel,
