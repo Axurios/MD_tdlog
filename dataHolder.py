@@ -2,7 +2,7 @@ import pickle
 import numpy as np
 #import os
 from ase import Atoms
-from typing import TypedDict, List, Dict
+from typing import TypedDict, List, Dict, Tuple
 #from scipy.stats import entropy
 #from scipy.constants import Boltzmann
 #import matplotlib.pyplot as plt
@@ -154,6 +154,27 @@ class DataHolder:
         self.all_energies = [
             ene for key, val in self.md_data.items() for ene in val["energies"]
         ]
+    
+    def get_energy_distributions(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+        """
+        Compute energy distributions and CDFs.      
+        Returns:
+            Tuple containing:
+            - All original energies
+            - ML predicted energies
+            - Sorted original energies
+            - Sorted ML energies
+        """
+        # Collect all original energies
+        all_energies = [ene for key, val in self.md_data.items() for ene in val["energies"]]      
+        # Compute predicted energies.
+
+        # Convert energies and apply sign change
+        energies_ = (-1) * np.array(all_energies)  # * self.eV_to_J  # Uncomment to convert to Joules
+        E_tot_ml_array = (-1) * np.array(self.E_tot_ml_list)  # * self.eV_to_J  # Uncomment to convert to Joules  
+        
+        return energies_, E_tot_ml_array
+
 
 
 def check_md_format(data, check_in_atoms= []):  #add check type of atoms elements (Atoms from ase)
