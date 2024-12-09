@@ -45,8 +45,11 @@ print(md_data[keys[0]].keys())
 #print(type(md_data[keys[0]]['atoms'][0]))
 #print(md_data[keys[0]]['atoms'][1])
 #print(md_data[keys[0]]['atoms'][1].get_array("forces"))
-print(theta)
+#print(theta)
 #print(md_data[keys[0]]['atoms'][1].get_positions())
+
+
+print(md_data[keys[0]]['atoms'][1].arrays.keys())
 
 E_tot_ml_list = []
 for key, val in md_data.items():

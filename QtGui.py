@@ -13,7 +13,8 @@ from PyQt5.QtWidgets import (
     QMessageBox,
     QHBoxLayout,
     QSpinBox,
-    QInputDialog
+    QInputDialog,
+    QLineEdit
 )
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFont
@@ -61,6 +62,7 @@ class GUI(QWidget):
         self.md_file_label = QLabel("No MD file selected", self)
         self.md_file_label.setFont(QFont("Calibri", 10))
         self.md_file_button = QPushButton("Select MD data file", self)
+        self.md_file_button.setFixedSize(200, 50)
         self.md_file_button.clicked.connect(lambda: self.select_file("md"))
         md_file_layout.addWidget(self.md_file_label)
         md_file_layout.addWidget(self.md_file_button)
@@ -70,6 +72,7 @@ class GUI(QWidget):
         self.theta_file_label = QLabel("No Theta file selected", self)
         self.theta_file_label.setFont(QFont("Calibri", 10))
         self.theta_file_button = QPushButton("Select Theta file", self)
+        self.theta_file_button.setFixedSize(200, 50)
         self.theta_file_button.clicked.connect(lambda: self.select_file("theta"))
         theta_file_layout.addWidget(self.theta_file_label)
         theta_file_layout.addWidget(self.theta_file_button)
@@ -78,6 +81,11 @@ class GUI(QWidget):
         file_section.addLayout(md_file_layout)
         file_section.addLayout(theta_file_layout)
         self.layout.addLayout(file_section)
+
+        self.descriptor_input = QLineEdit(self)
+        self.descriptor_input.setPlaceholderText("Enter descriptor name")
+        self.descriptor_input.setFixedSize(200, 50)
+        md_file_layout.addWidget(self.descriptor_input)
 
         # Temperature selection
         temp_section = QHBoxLayout()
