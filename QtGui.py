@@ -225,32 +225,6 @@ class GUI(QWidget):
             QMessageBox.critical(self, "Computation Error", str(e))
 
     
-
-    def load_theta(self, file_path: str):
-        """Load Theta data from a file."""
-        try:
-            with open(file_path, "rb") as f:
-                loaded_theta = pickle.load(f)
-                if (
-                    not isinstance(loaded_theta, dict)
-                    or "coef" not in loaded_theta
-                    or "intercept" not in loaded_theta
-                ):
-                    raise ValueError(
-                        "Invalid Theta data format: Expected keys 'coef' and 'intercept'."
-                    )
-                # Validate coefficient and intercept shapes
-                if (
-                    not isinstance(loaded_theta["coef"], np.ndarray)
-                    or loaded_theta["coef"].ndim != 2
-                ):
-                    raise ValueError("Theta 'coef' must be a 2D numpy array.")
-                if not np.isscalar(loaded_theta["intercept"]):
-                    raise ValueError("Theta 'intercept' must be a scalar.")
-                self.theta = loaded_theta
-        except Exception as e:
-            raise ValueError(f"Error loading Theta data: {e}")
-
     def display_md_data(self):
         if not self.data.md_data:
             self.data_display.setPlainText("No MD data loaded.")

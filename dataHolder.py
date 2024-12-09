@@ -51,10 +51,10 @@ class DataHolder:
             check_md_format(self.md_data, [descriptor])
 
             # Extract energies
-            self._extract_energies()
+            #self._extract_energies()
 
             # Prepare metadata for display
-            self.metadata = self._get_md_metadata()
+            #self.metadata = self._get_md_metadata()
 
         except Exception as e:
             raise ValueError(f"Error loading MD data: {e}")
