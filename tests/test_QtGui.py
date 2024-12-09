@@ -32,7 +32,7 @@ def sample_md_data():
     # Sample MD data structure
     return {
         "dataset1": {
-            "atoms": [atoms1, atoms2],
+            "atoms": [atoms1, atoms2],  #add str(1) in list to test if it raises Error for non atoms value
             "energies": [-0.5, 0.5],
         }
     }
@@ -86,3 +86,5 @@ def test_load_theta_data(app, sample_theta_data,sample_theta_data2, tmp_path):
         data.load_theta(theta_file)
 
     data.load_theta(theta_file2)
+
+

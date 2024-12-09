@@ -162,6 +162,8 @@ def check_md_format(data, check_in_atoms= []):  #add check type of atoms element
     for key, val in data.items():
         if ('atoms' not in val or "energies" not in val):
             raise ValueError(f"Invalid MD data for key {key}.")
+        if not all(type(atoms) ==  Atoms for atoms in val['atoms']):
+            raise ValueError(f"'atoms' elements are not Atoms element from ase")
     atom1 = data[list(data.keys())[0]]['atoms'][0]
     for array in check_in_atoms: 
         if not atom1.has(array) :
