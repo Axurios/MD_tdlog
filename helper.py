@@ -3,32 +3,44 @@ from tkinter import filedialog
 import subprocess
 import sys
 
+
 def check_requirements(requirements_file="requirements.txt"):
     try:
         with open(requirements_file) as f:
             required_packages = [
                 pkg.strip() for pkg in f if pkg.strip() and not pkg.startswith("#")
             ]
-        
+
         missing_packages = []
         for pkg in required_packages:
-            package_name = pkg.split("==")[0]
+            package_name = pkg.split(">=")[0]
             try:
                 __import__(package_name)
             except ImportError:
                 missing_packages.append(pkg)
-        
+
         if missing_packages:
             print(f"Missing packages: {missing_packages}")
             # Ask the user for permission to install
-            user_response = input(
-                "Some packages are missing. Do you want to install them? (yes/no): "
-            ).strip().lower()
-            
+            user_response = (
+                input(
+                    "Some packages are missing. Do you want to install them? (yes/no): "
+                )
+                .strip()
+                .lower()
+            )
+
             if user_response in {"yes", "y"}:
                 try:
                     subprocess.check_call(
-                        [sys.executable, "-m", "pip", "install", "-r", requirements_file]
+                        [
+                            sys.executable,
+                            "-m",
+                            "pip",
+                            "install",
+                            "-r",
+                            requirements_file,
+                        ]
                     )
                     print("All packages installed successfully.")
                 except subprocess.CalledProcessError as e:
