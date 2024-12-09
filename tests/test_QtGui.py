@@ -28,6 +28,7 @@ def sample_theta_data():
         "intercept": 0.5,
     }
 
+
 # Test for loading MD data
 def test_load_md_data(app, sample_md_data, tmp_path):
     # Create a temporary file for MD data

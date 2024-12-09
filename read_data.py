@@ -220,14 +220,15 @@ def boltCDF(T):
     return boltzmann_cdf(E,T)
 # bolcdf = boltzmann_cdf(E, Tb)
 def objective(t):
-    return np.sum( abs(boltCDF(t) - energies_cdf) )
+    return np.sum( (boltCDF(t) - energies_cdf)**2 )
 
 from scipy.optimize import minimize
-result = minimize(objective, x0=2000)
+result = minimize(objective, x0=100)
 print(f"optimal temperature is {result.x[0]}")
 plt.figure(figsize=(10, 6))
 plt.plot(E_transformed, boltzmann_cdf(E, result.x[0]), label=f"boltzmann cdf à {result.x[0]}", color='purple')
 plt.plot(E_tot_ml_sorted, E_tot_ml_cdf, label='E_tot_ml CDF', color='orange')
+# plt.plot(E_transformed , boltCDF(result.x[0]), color='red')
 plt.plot(energies_sorted, energies_cdf, label='Energy CDF', color='blue')
 plt.xlabel('Energy (eV)')
 plt.ylabel('CDF')
