@@ -51,10 +51,10 @@ class DataHolder:
             check_md_format(self.md_data, [descriptor])
 
             # Extract energies
-            #self._extract_energies()
+            self._extract_energies()
 
             # Prepare metadata for display
-            #self.metadata = self._get_md_metadata()
+            self.metadata = self._get_md_metadata(descriptor)
 
         except Exception as e:
             raise ValueError(f"Error loading MD data: {e}")
@@ -83,7 +83,7 @@ class DataHolder:
             # Prepare metadata for display
         self.metadata = self._get_theta_metadata()
 
-    def _get_md_metadata(self):
+    def _get_md_metadata(self, descriptor):
         """
         Generate metadata about the loaded MD data.
 
@@ -106,7 +106,7 @@ class DataHolder:
                     "num_atoms": len(val["atoms"][0]) if val["atoms"] else 0,
                     "first_energy": val["energies"][0] if val["energies"] else None,
                     "descriptor_shape": (
-                        val["atoms"][0].get_array("milady-descriptors").shape
+                        val["atoms"][0].get_array(descriptor).shape
                         if val["atoms"]
                         else None
                     ),
