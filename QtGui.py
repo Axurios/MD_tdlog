@@ -283,14 +283,3 @@ class GUI(QWidget):
         ax.plot(X, Y)
         self.canvas.draw()
 
-
-def check_md_format(data, check_in_atoms = []):
-    for key, val in data.items():
-        if ("atoms" not in val or "energies" not in val):
-            raise ValueError(f"Invalid MD data for key {key}.")
-    atom1 = list(data("atoms"))[0]
-    for array in check_in_atoms : 
-        if not atom1.has(array) :
-            raise ValueError(f"Invalid data for atoms in MD : no {array} found")
-
-
