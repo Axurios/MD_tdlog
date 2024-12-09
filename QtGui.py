@@ -177,25 +177,8 @@ class GUI(QWidget):
 
     def compute_and_plot_distribution(self):
         self.figure = CDF_plot(self.data)
-                # Initial dimensions for the figure
-        # self.figure_width, self.figure_height = 5, 4  # in inches
-        # # Create the Matplotlib plot area
-        # self.figure = Figure(
-        #     figsize=(self.figure_width, self.figure_height), dpi=100
-        # )  # noqa:
         self.canvas = FigureCanvas(self.figure)
         self.layout.addWidget(self.canvas)
-        # Calculate and store the initial aspect ratio
-        # self.init_aspect_ratio = self.figure_width / self.figure_height
-        # Draw the initial plot
-        # self.plot_graph()
-                # Example data for plotting
-        # X = [1, 2, 3, 4, 5, 6, 7]
-        # Y = [2, 3, 1, 6, 3, 4, 0]
-
-        # Plot on the matplotlib canvas
-        # ax = self.figure.add_subplot(111)
-        # ax.plot(X, Y)
         self.canvas.draw()
 
     
@@ -203,7 +186,6 @@ class GUI(QWidget):
         if not self.data.md_data:
             self.data_display.setPlainText("No MD data loaded.")
             return
-
         # Get metadata
         metadata = self.data.metadata
 

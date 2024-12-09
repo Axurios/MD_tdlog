@@ -2,7 +2,6 @@ from dataHolder import DataHolder
 import numpy as np
 from typing import Tuple
 from scipy.constants import Boltzmann
-import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
 
 def cdf(data: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
@@ -17,6 +16,7 @@ def cdf(data: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
     cdf = np.arange(1, len(sorted_data) + 1) / len(sorted_data)
     return sorted_data, cdf
 
+
 def boltzmann_cdf(E, T, kb=Boltzmann):
     """
     Cumulative distribution function for Boltzmann distribution
@@ -26,6 +26,7 @@ def boltzmann_cdf(E, T, kb=Boltzmann):
     """
     beta = 1/(kb*T)
     return 1 - np.exp(-beta*E)
+
 
 def CDF_plot(Data : DataHolder):
     # Get energy distributions
@@ -46,20 +47,6 @@ def CDF_plot(Data : DataHolder):
         
     # Compute Boltzmann CDF
     bolcdf = boltzmann_cdf(E, Tb)
-    # bolcdf = self.boltzmann_cdf(E_transformed * self.eV_to_J, temperature)        
-    # Plotting
-    # plt.figure(figsize=(10, 6))
-    # plt.plot(E_transformed, bolcdf, label=f"Boltzmann CDF at {Tb}K", color='purple')
-    # plt.plot(E_tot_ml_sorted, E_tot_ml_cdf, label='E_tot_ml CDF', color='orange')
-    # plt.plot(energies_sorted, energies_cdf, label='Energy CDF', color='blue')
-        
-    # plt.xlabel('Energy (eV)')
-    # plt.ylabel('CDF')
-    # plt.title('Comparison of Energy Distributions')
-    # plt.legend()
-    # plt.grid(True)
-    # plt.show()
-    # Create the Matplotlib figure
     fig = Figure(figsize=(10, 6))
     ax = fig.add_subplot(111)
     
