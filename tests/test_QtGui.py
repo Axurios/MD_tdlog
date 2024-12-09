@@ -81,21 +81,3 @@ def test_load_theta_data(app, sample_theta_data, tmp_path):
     # Verify the data was loaded and display was updated
     gui.data.load_theta.assert_called_once_with(str(theta_file))
     gui.display_theta_data.assert_called_once()
-
-"""
-# Test for handling invalid files
-def test_load_invalid_file(app, tmp_path):
-    # Create an invalid file
-    invalid_file = tmp_path / "invalid_data.pkl"
-    invalid_file.write_text("This is not a valid pickle file.")
-
-    gui = GUI()
-
-    # Simulate selecting the invalid file
-    with patch(
-        "PyQt5.QtWidgets.QFileDialog.getOpenFileName",
-        return_value=(str(invalid_file), ""),
-    ):
-        with pytest.raises(ValueError, match="Error loading MD data"):
-            gui.select_file("md")
-"""
