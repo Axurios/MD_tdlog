@@ -6,6 +6,7 @@ from unittest.mock import MagicMock, patch
 from PyQt5.QtWidgets import QApplication
 from QtGui import GUI  # Replace with your actual module name
 import numpy as np
+from dataHolder import DataHolder
 
 
 # Create a QApplication instance for testing GUI
@@ -52,14 +53,16 @@ def test_load_md_data(app, sample_md_data, tmp_path):
     with open(md_file, "wb") as f:
         pickle.dump(sample_md_data, f)
 
-    gui = GUI()
+    data = DataHolder()
 
     with pytest.raises(ValueError):
-        gui.data.load_md_data(md_file, 'descriptor2')
+        data.load_md_data(md_file, 'descriptor2')
 
-    gui.data.load_md_data(md_file, 'descriptor')
+    data.load_md_data(md_file, 'descriptor')
+
 
 """
+
 # Test for loading Theta data
 def test_load_theta_data(app, sample_theta_data, tmp_path):
     # Create a temporary file for Theta data
