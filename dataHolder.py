@@ -156,7 +156,7 @@ class DataHolder:
         ]
 
 
-def check_md_format(data, check_in_atoms= []):  #add check type of atoms elements (Atoms from ase)
+def check_md_format(data, check_in_atoms= []):  
     if (not isinstance(data, dict)) :
         raise ValueError("data is not pickle dictionnary")
     for key, val in data.items():
