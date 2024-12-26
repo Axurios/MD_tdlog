@@ -27,15 +27,6 @@ plt.imshow(train_data[0, :].reshape(28,28))
 print(train_labels[0])
 plt.show()
 
-def lin_layer(x,w,a):
-    """
-    simule le passage des données x à travers une couche linéaire 
-    w est la liste des poids (weights)
-    et a celle des biais
-    """
-    assert len(x)==len(w)==len(a), "les données ne sont pas toutes de même longueur"
-    return x*w+a
-
 # pouvoir changer de fonction de loss
 # vérifier en fonction de la fonction de loss la taille des tableau en entrée et en sortie pour que ce soit compatible pour les opérations 
 # implémenter des tests 
@@ -48,31 +39,19 @@ def lin_layer(x,w,a):
 
 # on a peu près boltzmann mais il faut extraire totalement boltzmann 
 
-def RMSE(w_range,a_range,x,NN):
-    """
-    Calcule la RMSE de x pour le réseau de neuronnes NN sur tout l'espace 2D w_range*a_range
-    """
-    
-    W, A = np.meshgrid(w_range, a_range)
-    y = NN(x,W,A)
-    RMSE = np.square(x-y)
-    return W, A, RMSE
+model = neural_network.SimpleMLP()
+loss=neural_network.MSE()
+neural_network.train(model, loss, train_data, train_labels, val_data,val_labels)
+y,W1, W2= model.forward_grid(val_data,2,100)
+RMSE = loss.forward_grid(y,val_labels)
 
-
-x = np.random.rand(100)
-w_range = np.linspace(-2, 2, 100)
-a_range = np.linspace(-2, 2, 100)
-NN=lin_layer
-
-# Compute the loss landscape
-W, A, RMSE = RMSE(w_range, a_range, x,NN)
 
 # Create a 3D plot
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
-ax.plot_surface(W, A, RMSE, cmap='viridis', alpha=0.8)
-ax.set_xlabel('W')
-ax.set_ylabel('A')
+ax.plot_surface(W1, W2, RMSE, cmap='viridis', alpha=0.8)
+ax.set_xlabel('W1')
+ax.set_ylabel('W2')
 ax.set_zlabel('RMSE')
 ax.set_title('RMSE en 3D')
 plt.show()
