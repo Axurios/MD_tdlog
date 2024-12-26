@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import QApplication
-from MD_tdlog.QtGui import GUI
-from MD_tdlog.helper import check_requirements
+from QtGui import GUI
+from helper import check_requirements
 
 if __name__ == "__main__":
     import sys

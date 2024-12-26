@@ -7,7 +7,7 @@ from tkinter import filedialog, Tk
 import subprocess
 import sys
 
-def check_requirements(requirements_file="MD_tdlog/requirements.txt"):
+def check_requirements(requirements_file="requirements.txt"):
     try:
         with open(requirements_file) as f:
             required_packages = [
@@ -49,7 +49,7 @@ def check_requirements(requirements_file="MD_tdlog/requirements.txt"):
 
 if __name__ == "__main__":
     # Example usage
-    check_requirements("MD_tdlog/requirements.txt")
+    check_requirements("requirements.txt")
 
 
 # Modified select_file function
