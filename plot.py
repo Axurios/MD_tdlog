@@ -7,10 +7,8 @@ from matplotlib.figure import Figure
 def cdf(data: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
     """
     Compute Cumulative Distribution Function (CDF).    
-    Args:
-        data (np.ndarray): Input data array
-    Returns:
-         Tuple of sorted data and CDF values
+    Args: data (np.ndarray): Input data array
+    Returns: Tuple of sorted data and CDF values
     """
     sorted_data = np.sort(data)
     cdf = np.arange(1, len(sorted_data) + 1) / len(sorted_data)

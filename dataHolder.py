@@ -10,14 +10,12 @@ from typing import TypedDict, List, Dict, Tuple
 
 class MDData(TypedDict):
     """Structure of MD Data dictionary"""
-
     atoms: List[Atoms]
     energies: List[float]
 
 
 class Theta(TypedDict):
     """Structure of θ dictionary"""
-
     coef: np.ndarray
     intercept: float
 
@@ -33,41 +31,34 @@ class DataHolder:
         self.plot_data = None
         self.metadata = None
 
+
     def load_md_data(self, file_path: str, descriptor: str):
         """
         Load Molecular Dynamics data from a pickle file.
-
         Args:
             file_path (str): Path to the pickle file containing MD data
             descriptor (str) : key for descriptor in atoms
-
         Returns:
             dict: Metadata about the loaded MD data
         """
         try:
             with open(file_path, "rb") as f:
                 self.md_data = pickle.load(f)
-
             check_md_format(self.md_data, [descriptor])
-
             # Extract energies
             self._extract_energies()
-
             # Prepare metadata for display
             self.metadata = self._get_md_metadata(descriptor)
 
         except Exception as e:
             raise ValueError(f"Error loading MD data: {e}")
 
+
     def load_theta(self, file_path: str):
         """
         Load Theta parameters from a pickle file.
-
-        Args:
-            file_path (str): Path to the pickle file containing Theta parameters
-
-        Returns:
-            dict: Metadata about the loaded Theta parameters
+        Args: file_path (str): Path to the pickle file containing Theta parameters
+        Returns: dict: Metadata about the loaded Theta parameters
         """
         
         with open(file_path, "rb") as f:
@@ -79,16 +70,14 @@ class DataHolder:
             or "intercept" not in self.theta
         ):
             raise ValueError("Invalid Theta data format")
-
-            # Prepare metadata for display
+        # Prepare metadata for display
         self.metadata = self._get_theta_metadata()
+
 
     def _get_md_metadata(self, descriptor):
         """
         Generate metadata about the loaded MD data.
-
-        Returns:
-            dict: Metadata about MD data
+        Returns: dict: Metadata about MD data
         """
         # If no data is loaded
         if not self.md_data:
@@ -123,12 +112,11 @@ class DataHolder:
 
         return metadata
 
+
     def _get_theta_metadata(self):
         """
         Generate metadata about the loaded Theta parameters.
-
-        Returns:
-            dict: Metadata about Theta parameters
+        Returns: dict: Metadata about Theta parameters
         """
         # If no theta data is loaded
         if not self.theta:
@@ -149,26 +137,25 @@ class DataHolder:
             },
         }
 
+
     def _extract_energies(self):
         """Extract energies from MD data."""
         self.all_energies = [
             ene for key, val in self.md_data.items() for ene in val["energies"]
         ]
-    
+
+
     def get_energy_distributions(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
         """
         Compute energy distributions and CDFs.      
-        Returns:
-            Tuple containing:
+        Returns: Tuple containing:
             - All original energies
             - ML predicted energies
             - Sorted original energies
             - Sorted ML energies
         """
         # Collect all original energies
-        all_energies = [ene for key, val in self.md_data.items() for ene in val["energies"]]      
-        # Compute predicted energies.
-
+        all_energies = [ene for key, val in self.md_data.items() for ene in val["energies"]]
         # Convert energies and apply sign change
         energies_ = (-1) * np.array(all_energies)  # * self.eV_to_J  # Uncomment to convert to Joules
         E_tot_ml_array = (-1) * np.array(self.E_tot_ml_list)  # * self.eV_to_J  # Uncomment to convert to Joules  

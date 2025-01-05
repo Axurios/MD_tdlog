@@ -4,7 +4,7 @@ import subprocess
 import sys
 
 
-def check_requirements(requirements_file="requirements.txt"):
+def check_requirements(requirements_file="MD_tdlog/requirements.txt"):
     try:
         with open(requirements_file) as f:
             required_packages = [
