@@ -29,6 +29,7 @@ matplotlib.use("Qt5Agg")
 from ase import Atoms
 from typing import TypedDict, List, Dict
 from dataHolder import DataHolder
+from plot import CDF_plot
 
 
 class GUI(QWidget):
@@ -183,61 +184,16 @@ class GUI(QWidget):
 
 
     def compute_and_plot_distribution(self):
-        """Compute energy distributions and CDFs."""
-        if not self.data.md_data:
-            raise ValueError("MD data not loaded.")
-        if not self.data.theta:
-            raise ValueError("Theta parameters not loaded.")
-        if not self.data.all_energies:
-            raise ValueError("No energies extracted. Call _extract_energies() first.")
-        if not self.data.E_tot_ml_list:
-            raise ValueError(
-                "Predicted energies not computed. Call compute_predicted_energies() first."
-            )
-        try:
-            temperature = self.temp_spinbox.value()
-            plot_data = self.data._extract_energies(temperature)
-
-            # Clear previous plot
-            self.figure.clear()
-            ax = self.figure.add_subplot(111)
-
-            # Plot distributions
-            ax.plot(
-                plot_data["E_transformed"],
-                plot_data["bolcdf"],
-                label=f"Boltzmann CDF at {temperature}K",
-                color="purple",
-            )
-            ax.plot(
-                plot_data["E_tot_ml_sorted"],
-                plot_data["E_tot_ml_cdf"],
-                label="Predicted Energy CDF",
-                color="orange",
-            )
-            ax.plot(
-                plot_data["energies_sorted"],
-                plot_data["energies_cdf"],
-                label="Original Energy CDF",
-                color="blue",
-            )
-
-            ax.set_xlabel("Energy (eV)")
-            ax.set_ylabel("Cumulative Distribution")
-            ax.set_title("Energy Distribution Comparison")
-            ax.legend()
-            ax.grid(True)
-
-            self.canvas.draw()
-        except Exception as e:
-            QMessageBox.critical(self, "Computation Error", str(e))
+        self.figure = CDF_plot(self.data)
+        self.canvas = FigureCanvas(self.figure)
+        self.layout.addWidget(self.canvas)
+        self.canvas.draw()
 
     
     def display_md_data(self):
         if not self.data.md_data:
             self.data_display.setPlainText("No MD data loaded.")
             return
-
         # Get metadata
         metadata = self.data.metadata
 

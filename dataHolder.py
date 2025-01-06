@@ -2,8 +2,7 @@ import pickle
 import numpy as np
 #import os
 from ase import Atoms
-from typing import Tuple
-from typing import TypedDict, List, Dict
+from typing import TypedDict, List, Dict, Tuple
 #from scipy.stats import entropy
 #from scipy.constants import Boltzmann
 #import matplotlib.pyplot as plt
@@ -11,14 +10,12 @@ from typing import TypedDict, List, Dict
 
 class MDData(TypedDict):
     """Structure of MD Data dictionary"""
-
     atoms: List[Atoms]
     energies: List[float]
 
 
 class Theta(TypedDict):
     """Structure of θ dictionary"""
-
     coef: np.ndarray
     intercept: float
 
@@ -39,11 +36,9 @@ class DataHolder:
     def load_md_data(self, file_path: str):
         """
         Load Molecular Dynamics data from a pickle file.
-
         Args:
             file_path (str): Path to the pickle file containing MD data
             descriptor (str) : key for descriptor in atoms
-
         Returns:
             dict: Metadata about the loaded MD data
         """
@@ -57,7 +52,6 @@ class DataHolder:
 
             # Extract energies
             self._extract_energies()
-
             # Prepare metadata for display
             # self.metadata = self._get_md_metadata(descriptor)
 
@@ -66,15 +60,12 @@ class DataHolder:
         self.md_data_loaded = True
         return list_of_attributes
 
+
     def load_theta(self, file_path: str):
         """
         Load Theta parameters from a pickle file.
-
-        Args:
-            file_path (str): Path to the pickle file containing Theta parameters
-
-        Returns:
-            dict: Metadata about the loaded Theta parameters
+        Args: file_path (str): Path to the pickle file containing Theta parameters
+        Returns: dict: Metadata about the loaded Theta parameters
         """
         
         with open(file_path, "rb") as f:
@@ -91,12 +82,11 @@ class DataHolder:
         #self.metadata = self._get_theta_metadata()
         self.md_data_loaded = True
 
+
     def _get_md_metadata(self, descriptor):
         """
         Generate metadata about the loaded MD data.
-
-        Returns:
-            dict: Metadata about MD data
+        Returns: dict: Metadata about MD data
         """
         # If no data is loaded
         if not self.md_data:
@@ -131,12 +121,11 @@ class DataHolder:
 
         return metadata
 
+
     def _get_theta_metadata(self):
         """
         Generate metadata about the loaded Theta parameters.
-
-        Returns:
-            dict: Metadata about Theta parameters
+        Returns: dict: Metadata about Theta parameters
         """
         # If no theta data is loaded
         if not self.theta:
@@ -156,6 +145,7 @@ class DataHolder:
                 "mean_value": np.mean(self.theta["coef"]),
             },
         }
+
 
     def _extract_energies(self):
         """Extract energies from MD data."""
