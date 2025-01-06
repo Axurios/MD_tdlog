@@ -16,7 +16,7 @@ class MDData(TypedDict):
 
 
 class Theta(TypedDict):
-    """Structure du dictionnaire de \theta"""
+    """Structure du dictionnaire de theta"""
 
     coef: np.ndarray
     intercept: float

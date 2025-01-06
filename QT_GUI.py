@@ -7,6 +7,7 @@ from PyQt5.QtWidgets import (
     QLabel,
     QPushButton,
     QVBoxLayout,
+    QMessageBox
 )
 from PyQt5.QtCore import (
     QRect,
@@ -21,9 +22,10 @@ from button_function import (
     compute_and_plot_distribution
 )
 import matplotlib.figure
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.backends.backend_qt5agg import (
+     FigureCanvasQTAgg as FigureCanvas)
 
-#### get screen dimensions#######
+# ### get screen dimensions#######
 app = QApplication([])
 # Get the primary screen
 screen = QGuiApplication.primaryScreen()
@@ -37,7 +39,7 @@ app.quit()
 ################################
 
 
-#####specs of buttons and boxes#####
+# ####specs of buttons and boxes#####
 
 x_box1 = window_width//20
 box1_width = window_width//6
@@ -88,6 +90,14 @@ class Window(QMainWindow):
                                         window_height-box1_height-y_box1,
                                         box1_width, box1_height))
             self.btn3.clicked.connect(lambda: compute_and_plot_distribution(self))
+
+            # compute theta of Fisher
+
+            self.btn4 = QPushButton("Compute Fisher", self)
+            self.btn4.setGeometry(QRect(window_width-box1_width-x_box1,
+                                        window_height-box1_height*2-y_box1*2,
+                                        box1_width, box1_height))
+            # self.btn4.clicked.connect(lambda: compute_and_plot_distribution(self))
             
         def create_labels(self):
             self.lbl1 = QLabel("Path/to/MD_File", self)
@@ -129,6 +139,15 @@ class Window(QMainWindow):
             plot_window = PlotWindow(fig)
             plot_window.exec_()
 
+        def show_error(self, ErrorMessage):
+            error_dialog = QMessageBox(self)
+            error_dialog.setIcon(QMessageBox.Critical)
+            error_dialog.setWindowTitle("Error")
+            error_dialog.setText("An error has occurred!")
+            error_dialog.setInformativeText(ErrorMessage)
+            error_dialog.setStandardButtons(QMessageBox.Ok)
+            error_dialog.exec_()  # Display the error dialog
+
 
 class PlotWindow(QDialog):
     def __init__(self, fig: matplotlib.figure.Figure):
@@ -139,8 +158,8 @@ class PlotWindow(QDialog):
 
         # Set the passed figure
         self.figure = fig
-        self.canvas = FigureCanvas(self.figure)  # Create a canvas for the figure
-        
+        self.canvas = FigureCanvas(self.figure)
+
         # Add the canvas to the dialog's layout
         layout = QVBoxLayout()
         layout.addWidget(self.canvas)
@@ -148,5 +167,3 @@ class PlotWindow(QDialog):
 
         # Redraw the canvas to show the plot
         self.canvas.draw()
-
-    

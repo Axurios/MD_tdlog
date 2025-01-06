@@ -38,24 +38,20 @@ class DataHolder:
         Returns:
             dict: Metadata about the loaded MD data
         """
-        try:
-            with open(file_path, "rb") as f:
-                self.md_data = pickle.load(f)
+        with open(file_path, "rb") as f:
+            self.md_data = pickle.load(f)
 
-            first_item = list(self.md_data.keys())[0]
-            dict = self.md_data[first_item]['atoms'][0].arrays
-            list_of_attributes = list(dict.keys())
+        check_md_format(self.md_data)
 
-            # Extract energies
-            self._extract_energies()
-            # Prepare metadata for display
-            # self.metadata = self._get_md_metadata(descriptor)
+        first_item = list(self.md_data.keys())[0]
+        dict = self.md_data[first_item]['atoms'][0].arrays
+        list_of_attributes = list(dict.keys())
 
-        except Exception as e:
-            raise ValueError(f"Error loading MD data: {e}")
+        # Extract energies
+        self._extract_energies()
+
         self.md_data_loaded = True
         return list_of_attributes
-
 
     def load_theta(self, file_path: str):
         """
@@ -74,74 +70,7 @@ class DataHolder:
         ):
             raise ValueError("Invalid Theta data format")
 
-            # Prepare metadata for display
-        #self.metadata = self._get_theta_metadata()
         self.theta_loaded = True
-
-
-    def _get_md_metadata(self, descriptor):
-        """
-        Generate metadata about the loaded MD data.
-        Returns: dict: Metadata about MD data
-        """
-        # If no data is loaded
-        if not self.md_data:
-            return {"summary": "No MD data loaded", "total_datasets": 0, "details": []}
-
-        # Prepare detailed metadata
-        metadata = {"total_datasets": len(self.md_data), "details": []}
-
-        for key, val in self.md_data.items():
-            dataset_info = {
-                "key": key,
-                "num_configurations": len(val["atoms"]),
-                "energy_range": (min(val["energies"]), max(val["energies"])),
-                "first_config_details": {
-                    "num_atoms": len(val["atoms"][0]) if val["atoms"] else 0,
-                    "first_energy": val["energies"][0] if val["energies"] else None,
-                    "descriptor_shape": (
-                        val["atoms"][0].get_array(descriptor).shape
-                        if val["atoms"]
-                        else None
-                    ),
-                },
-            }
-            metadata["details"].append(dataset_info)
-
-        # Add summary
-        metadata["summary"] = (
-            f"Loaded {metadata['total_datasets']} datasets\n"
-            f"Total configurations: {sum(len(val['atoms']) for val in self.md_data.values())}\n"
-            f"Energy range across all datasets: {min(self.all_energies)} to {max(self.all_energies)} eV"
-        )
-
-        return metadata
-
-
-    def _get_theta_metadata(self):
-        """
-        Generate metadata about the loaded Theta parameters.
-        Returns: dict: Metadata about Theta parameters
-        """
-        # If no theta data is loaded
-        if not self.theta:
-            return {
-                "summary": "No Theta data loaded",
-                "coefficient_shape": None,
-                "intercept": None,
-            }
-
-        return {
-            "summary": "Theta parameters loaded successfully",
-            "coefficient_shape": self.theta["coef"].shape,
-            "intercept": self.theta["intercept"],
-            "coefficient_details": {
-                "min_value": np.min(self.theta["coef"]),
-                "max_value": np.max(self.theta["coef"]),
-                "mean_value": np.mean(self.theta["coef"]),
-            },
-        }
-
 
     def _extract_energies(self):
         """Extract energies from MD data."""
@@ -162,16 +91,11 @@ class DataHolder:
         return energies_, E_tot_ml_array
 
 
-def check_md_format(data, check_in_atoms= []):  
-    if (not isinstance(data, dict)) :
+def check_md_format(data):  
+    if (not isinstance(data, dict)):
         raise ValueError("data is not pickle dictionnary")
     for key, val in data.items():
         if ('atoms' not in val or "energies" not in val):
             raise ValueError(f"Invalid MD data for key {key}.")
-        if not all(type(atoms) ==  Atoms for atoms in val['atoms']):
-            raise ValueError(f"'atoms' elements are not Atoms element from ase")
-    atom1 = data[list(data.keys())[0]]['atoms'][0]
-    for array in check_in_atoms: 
-        if not atom1.has(array) :
-            raise ValueError(f"Invalid data for atoms in MD : no descriptor named {array} found")
-
+        if not all(type(atoms) is Atoms for atoms in val['atoms']):
+            raise ValueError("'atoms' elements are not Atoms element from ase")
