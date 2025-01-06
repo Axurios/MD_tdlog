@@ -2,6 +2,7 @@ import pickle
 import numpy as np
 #import os
 from ase import Atoms
+from typing import Tuple
 from typing import TypedDict, List, Dict
 #from scipy.stats import entropy
 #from scipy.constants import Boltzmann
@@ -27,13 +28,15 @@ class DataHolder:
 
     def __init__(self):
         self.md_data: Dict[str, MDData] = {}
+        self.md_data_loaded = False
         self.theta: Theta = {}
+        self.theta_loaded = False
         self.E_tot_ml_list: List[float] = []
         self.all_energies: List[float] = []
         self.plot_data = None
         self.metadata = None
 
-    def load_md_data(self, file_path: str, descriptor: str):
+    def load_md_data(self, file_path: str):
         """
         Load Molecular Dynamics data from a pickle file.
 
@@ -48,16 +51,20 @@ class DataHolder:
             with open(file_path, "rb") as f:
                 self.md_data = pickle.load(f)
 
-            check_md_format(self.md_data, [descriptor])
+            first_item = list(self.md_data.keys())[0]
+            dict = self.md_data[first_item]['atoms'][0].arrays
+            list_of_attributes = list(dict.keys())
 
             # Extract energies
             self._extract_energies()
 
             # Prepare metadata for display
-            self.metadata = self._get_md_metadata(descriptor)
+            # self.metadata = self._get_md_metadata(descriptor)
 
         except Exception as e:
             raise ValueError(f"Error loading MD data: {e}")
+        self.md_data_loaded = True
+        return list_of_attributes
 
     def load_theta(self, file_path: str):
         """
@@ -81,7 +88,8 @@ class DataHolder:
             raise ValueError("Invalid Theta data format")
 
             # Prepare metadata for display
-        self.metadata = self._get_theta_metadata()
+        #self.metadata = self._get_theta_metadata()
+        self.md_data_loaded = True
 
     def _get_md_metadata(self, descriptor):
         """
@@ -154,6 +162,18 @@ class DataHolder:
         self.all_energies = [
             ene for key, val in self.md_data.items() for ene in val["energies"]
         ]
+    
+    def get_energy_distributions(self) -> Tuple[np.ndarray,
+                                                np.ndarray,
+                                                np.ndarray,
+                                                np.ndarray]:
+        # Collect all original energies
+        all_energies = [ene for key, val in self.md_data.items() for ene in val["energies"]]
+        # Convert energies and apply sign change
+        energies_ = (-1) * np.array(all_energies)  # * self.eV_to_J  # Uncomment to convert to Joules
+        E_tot_ml_array = (-1) * np.array(self.E_tot_ml_list)  # * self.eV_to_J  # Uncomment to convert to Joules
+
+        return energies_, E_tot_ml_array
 
 
 def check_md_format(data, check_in_atoms= []):  
