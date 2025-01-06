@@ -431,8 +431,6 @@ def create_theta_fisher(gradDesc_list: list, gradU_list: list) -> Theta:
     return new_theta
 
 
-
-
 def create_theta_to_theta_star(theta: Theta, theta_star: Theta,n):
     t_list = np.linspace(0, 1, n) 
     # print(t_list)
@@ -453,17 +451,7 @@ def create_theta_to_theta_star(theta: Theta, theta_star: Theta,n):
     return theta_list
 
 
-
-# print(G_list[-100].shape, "test")
-# print(len(grad_list))
-# print(grad_list[0].shape, "grad list")
-# print(len(f_list))
-# print(f_list[0].shape)
 theta_fish = create_theta_fisher(G_list, f_list)
-# print(len(theta_fish["coef"]))
-
-# theta: Theta = pickle.load(open(path_theta, "rb"))
-# print(len(theta["coef"]))
 
 
 def plot_loss_theta_to_theta_star(theta_list):
@@ -488,26 +476,8 @@ def plot_loss_theta_to_theta_star(theta_list):
 theta_list = create_theta_to_theta_star(theta, theta_fish, 4)
 print(len(theta_list), "LEN THETAS")
 #thetaMSE(theta, theta_list[0])
-#plot_loss_theta_to_theta_star(theta_list=theta_list)
-    # for ats, ene in zip(atoms, energies):
-    #     # descripteurs D \in R^{M \times D}
-    #     desc = ats.get_array("milady-descriptors")
-    #     G_list.append(desc)
-    #     # gradient des descripteurs \nabla D \in R^{M \times D \times 3}
-    #     grad_desc = ats.get_array("milady-descriptors-forces")
-    #     grad_list.append(grad_desc)
-    #     # positions des atomes \in R^{M \times 3}
-    #     position = ats.positions
-    #     # forces sur les atomes \in R^{M \times 3}
-    #     f = ats.get_array("forces")
-    #     f_list.append(f)
-    #     # print(f'desc dim = {desc.shape}, grad desc dim = {grad_desc.shape}, position dim = {position.shape}, forces dim = {f.shape}') # noqa:
-        
-    #     # évaluation de l'énergie par le modèle linéaire
-    #     e_ml = DotProductDesc(theta, desc)
-    #     E_tot_ml = np.sum(e_ml)
 
-    # L2 norm between the two theta
+
 def thetaMSE(theta: Theta, theta_star: Theta):
     # print(t_list)
     arr1 = np.array(theta["coef"])
@@ -521,23 +491,8 @@ def thetaMSE(theta: Theta, theta_star: Theta):
     mse = np.mean((arr1 - arr2) ** 2) #np.mean(arr2, axis=1))
     return mse
 
-# print(thetaMSE(theta, theta_fish))
-    # for i, current_theta in enumerate(theta_list) :
-    #     E_tot_current_theta_list = []
-    #     for ats in atoms :
-    #         # descripteurs D \in R^{M \times D}
-    #         desc = ats.get_array("milady-descriptors")
-    #         e_ml = DotProductDesc(current_theta, desc)
-    #         E_tot_ml = np.sum(e_ml)
-    #         E_tot_current_theta_list.append(E_tot_ml)
 
-    #     E_tot_ml_array = (-1) * np.array(E_tot_ml_list)
-    # #    E_tot_ml_sorted, E_tot_ml_cdf = cdf(E_tot_ml_array)
-    #    plt.plot(E_tot_ml_sorted, E_tot_ml_cdf, label=f"CDF theta n°{i}", alpha = 0.3)
-    # plt.legend()
-    # plt.show()
 print(thetaMSE(theta, theta_list[-1]))
-
 E_tot_fish = []
 for ats in atoms :
 # descripteurs D \in R^{M \times D}
