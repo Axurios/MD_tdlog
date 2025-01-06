@@ -32,7 +32,7 @@ def sample_md_data():
     # Sample MD data structure
     return {
         "dataset1": {
-            "atoms": [atoms1, atoms2],
+            "atoms": [atoms1, atoms2],  #add str(1) in list to test if it raises Error for non atoms value
             "energies": [-0.5, 0.5],
         }
     }
@@ -41,7 +41,14 @@ def sample_md_data():
 @pytest.fixture
 def sample_theta_data():
     return {
-        "coef": [[0.1, 0.2], [0.3, 0.4]],
+        "coeff": np.array([[0.1, 0.2], [0.3, 0.4]]),
+        "intercept": 0.5,
+    }
+
+@pytest.fixture
+def sample_theta_data2():
+    return {
+        "coef": np.array([[0.1, 0.2], [0.3, 0.4]]),
         "intercept": 0.5,
     }
 
@@ -61,27 +68,23 @@ def test_load_md_data(app, sample_md_data, tmp_path):
     data.load_md_data(md_file, 'descriptor')
 
 
-"""
-
 # Test for loading Theta data
-def test_load_theta_data(app, sample_theta_data, tmp_path):
+def test_load_theta_data(app, sample_theta_data,sample_theta_data2, tmp_path):
     # Create a temporary file for Theta data
     theta_file = tmp_path / "theta_data.pkl"
     with open(theta_file, "wb") as f:
         pickle.dump(sample_theta_data, f)
 
-    gui = GUI()
-    gui.data.load_theta = MagicMock()  # Mock the actual data loading
-    gui.display_theta_data = MagicMock()  # Mock display function
+    theta_file2 = tmp_path / "theta_data2.pkl"
+    with open(theta_file2, "wb") as f:
+        pickle.dump(sample_theta_data2, f)
+
+    data = DataHolder()
 
     # Simulate selecting the file
-    with patch(
-        "PyQt5.QtWidgets.QFileDialog.getOpenFileName",
-        return_value=(str(theta_file), ""),
-    ):
-        gui.select_file("theta")
+    with pytest.raises(ValueError):
+        data.load_theta(theta_file)
 
-    # Verify the data was loaded and display was updated
-    gui.data.load_theta.assert_called_once_with(str(theta_file))
-    gui.display_theta_data.assert_called_once()
-"""
+    data.load_theta(theta_file2)
+
+

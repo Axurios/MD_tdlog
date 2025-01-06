@@ -41,6 +41,30 @@ md_data: Dict[str, MDData] = pickle.load(open(path_data, "rb"))
 theta: Theta = pickle.load(open(path_theta, "rb"))
 
 keys = list(md_data.keys())
+#tkeys = list(theta.keys)
+# print(md_data[keys[0]].keys())
+# print(type(md_data[keys[0]]['atoms'][0]))
+# print(md_data[keys[0]]['atoms'][1])
+# print(md_data[keys[0]]['atoms'][1].get_array("forces"))
+#print(md_data[keys[0]]['atoms'][1].get_positions())
+
+print(len(keys))
+
+#print('pot',[md_data[keys[x]]['energies'] for x in range(35)])
+
+#print(md_data[keys[0]]['atoms'][-1])
+
+#print('okok',md_data[keys[0]]['atoms'][-1].get_array('milady-descriptors-forces').shape)
+
+print(theta['coef'])
+#print('ouioui', )
+
+# for k in keys :
+#     md_data[k]['atoms'][-1].calc = LennardJones()
+#     data = md_data[k]['atoms'][-1].get_potential_energies()
+#     sorted,cdf_data = cdf(data)
+#     plt.plot(cdf_data, sorted)
+# plt.show()
 
 E_tot_ml_list = []
 G_list = []
