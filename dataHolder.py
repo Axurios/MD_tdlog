@@ -80,7 +80,7 @@ class DataHolder:
 
             # Prepare metadata for display
         #self.metadata = self._get_theta_metadata()
-        self.md_data_loaded = True
+        self.theta_loaded = True
 
 
     def _get_md_metadata(self, descriptor):

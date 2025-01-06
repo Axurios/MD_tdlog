@@ -3,28 +3,15 @@ from PyQt5.QtWidgets import (
     QMainWindow,
     QApplication,
     QDialog,
-    QListWidget,
-    QListWidgetItem,
     QComboBox,
-    QWidget,
     QLabel,
     QPushButton,
     QVBoxLayout,
-    QSlider,
-    QTextEdit,
-    QFileDialog,
-    QMessageBox,
-    QHBoxLayout,
-    QSpinBox,
-    QInputDialog,
-    QLineEdit,
 )
 from PyQt5.QtCore import (
-    Qt,
     QRect,
 )
 from PyQt5.QtGui import (
-    QFont,
     QGuiApplication,
     QIcon,
 )
@@ -36,7 +23,7 @@ from button_function import (
 import matplotlib.figure
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 
-####get screen dimensions#######
+#### get screen dimensions#######
 app = QApplication([])
 # Get the primary screen
 screen = QGuiApplication.primaryScreen()
@@ -71,6 +58,7 @@ class Window(QMainWindow):
         def create_ui(self):
             self.setWindowTitle("main page")
             self.setGeometry(sw//4, sh//4, window_width, window_height)
+            self.setFixedSize(window_width, window_height)
             self.setWindowIcon(QIcon("cea.png"))
             self.initlayout()
             self.show()
@@ -94,7 +82,7 @@ class Window(QMainWindow):
                                         box1_width, box1_height))
             self.btn2.clicked.connect(lambda: select_theta_file(self))
             
-            #compute button
+            # compute button
             self.btn3 = QPushButton("Energy Distribution", self)
             self.btn3.setGeometry(QRect(window_width-box1_width-x_box1,
                                         window_height-box1_height-y_box1,
@@ -147,6 +135,7 @@ class PlotWindow(QDialog):
         super().__init__()
         self.setWindowTitle("Plot Window")
         self.setGeometry(sw//4, sh//4, window_width, window_height)
+        self.setFixedSize(window_width, window_height)
 
         # Set the passed figure
         self.figure = fig

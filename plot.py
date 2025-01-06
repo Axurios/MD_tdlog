@@ -26,10 +26,10 @@ def boltzmann_cdf(E, T, kb=Boltzmann):
     return 1 - np.exp(-beta*E)
 
 
-def CDF_plot(Data : DataHolder):
+def CDF_plot(Data : DataHolder, Tb = 2000):
     # Get energy distributions
     energies_, E_tot_ml_array = Data.get_energy_distributions()
-    print(E_tot_ml_array)
+    #print(E_tot_ml_array)
         
     # Compute CDFs
     energies_sorted, energies_cdf = cdf(energies_)
@@ -38,7 +38,6 @@ def CDF_plot(Data : DataHolder):
     E_eV = np.linspace(0, 1, len(energies_sorted))  # Energy range from 0 to 1 eV
     eV_to_J = 1.602176634e-19
     E = E_eV * eV_to_J  # Convert to Joules
-    Tb = 2000
     # Prepare energy range for Boltzmann CDF
     ene_length = abs((energies_.max()) - (energies_.min()))
     E_transformed = (E_eV)*ene_length  +energies_.min() 
@@ -50,7 +49,7 @@ def CDF_plot(Data : DataHolder):
     
     # Plot data
     ax.plot(E_transformed, bolcdf, label=f"Boltzmann CDF at {Tb}K", color='purple')
-    ax.plot(E_tot_ml_sorted, E_tot_ml_cdf, label='E_tot_ml CDF', color='orange')
+    #ax.plot(E_tot_ml_sorted, E_tot_ml_cdf, label='E_tot_ml CDF', color='orange')
     ax.plot(energies_sorted, energies_cdf, label='Energy CDF', color='blue')
     
     # Labeling
