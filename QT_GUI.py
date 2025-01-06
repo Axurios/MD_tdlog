@@ -19,7 +19,8 @@ from PyQt5.QtGui import (
 from button_function import (
     select_md_file,
     select_theta_file,
-    compute_and_plot_distribution
+    compute_and_plot_distribution,
+    compute_theta_of_fischer
 )
 import matplotlib.figure
 from matplotlib.backends.backend_qt5agg import (
@@ -97,7 +98,7 @@ class Window(QMainWindow):
             self.btn4.setGeometry(QRect(window_width-box1_width-x_box1,
                                         window_height-box1_height*2-y_box1*2,
                                         box1_width, box1_height))
-            # self.btn4.clicked.connect(lambda: compute_and_plot_distribution(self))
+            self.btn4.clicked.connect(lambda: compute_theta_of_fischer(self))
             
         def create_labels(self):
             self.lbl1 = QLabel("Path/to/MD_File", self)

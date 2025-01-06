@@ -43,6 +43,7 @@ class DataHolder:
 
         check_md_format(self.md_data)
 
+        # extract list of attributes in atoms
         first_item = list(self.md_data.keys())[0]
         dict = self.md_data[first_item]['atoms'][0].arrays
         list_of_attributes = list(dict.keys())

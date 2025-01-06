@@ -3,6 +3,8 @@ import numpy as np
 from typing import Tuple
 from scipy.constants import Boltzmann
 from matplotlib.figure import Figure
+from fisher import fisher_theta
+#from ase.calculators.lj import LennardJones
 
 def cdf(data: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
     """
@@ -60,3 +62,29 @@ def CDF_plot(Data : DataHolder, Tb = 2000):
     ax.grid(True)
     
     return fig  # Return the figure object
+
+
+def CDF_plot2(Data : DataHolder, descstr : str):
+    keys  = list(Data.md_data.keys())
+    fig = Figure()
+    ax = fig.add_subplot()
+    #ax.set_yscale('log')
+    for k in keys : 
+        #Data.md_data[k]['atoms'][-1].calc = LennardJones()
+        data = np.dot(Data.theta['coef'],np.array(Data.md_data[k]['atoms'][-1].get_array(descstr)).transpose())
+        sorted,cdf_data = cdf(data)
+        ax.plot(sorted, cdf_data)
+    return fig
+
+def CDF_fisher(Data : DataHolder, descstr : str,  gradstr : str, forcestr : str, beta : float = 1):
+    keys  = list(Data.md_data.keys())
+    fig = Figure()
+    ax = fig.add_subplot()
+    fishertheta = fisher_theta(Data, gradstr, forcestr, beta)
+    #ax.set_yscale('log')
+    for k in keys : 
+        #Data.md_data[k]['atoms'][-1].calc = LennardJones()
+        data = np.dot(fishertheta,np.array(Data.md_data[k]['atoms'][-1].get_array(descstr)).transpose())
+        sorted,cdf_data = cdf(data)
+        ax.plot(sorted, cdf_data)
+    return fig
