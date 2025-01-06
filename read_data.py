@@ -400,19 +400,21 @@ def create_theta_fisher(gradDesc_list: list, gradU_list: list) -> Theta:
     Returns:
         Theta: TypedDict with coef and intercept
     """
-    gradDescT_list = [g.T for g in gradDesc_list]
-    GT_G = [np.matmul(g_t, g) for g_t, g in zip(gradDescT_list, gradDesc_list)]
+    #original_shape = np.array(gradDesc_list).shape
+    reshaped = [g.reshape(260, -1) for g in gradDesc_list]
+    gradDescT_list = [g.T for g in reshaped]
+    print(gradDescT_list[0].shape, "/////")
+    print(reshaped[0].shape)
+    GT_G = [np.matmul(g, g_t) for g_t, g in zip(gradDescT_list, reshaped)]
     # GT_G = np.matmul(G_array.T, G_array)
-    # print("info")
     print(len(GT_G), "len gtg")
-    print( GT_G[0].shape, "first elem of gtg")
+    print(GT_G[0].shape, "first elem of gtg")
     #a = [np.mean(m) for m in GT_G]
     a = np.mean(GT_G, axis=0)
     
     # Calculate second expectancy (b)
-    GT_gradU = [np.matmul(g_t, gradU) for g_t, gradU in zip(gradDescT_list, gradU_list)]
+    GT_gradU = [np.matmul(gradU, g_t) for g_t, gradU in zip(gradDescT_list, reshaped)]
     # GT_gradU = np.matmul(G_array.T, gradU_array)
-    #b = [np.mean(gU) for gU in GT_gradU]
     print(len(GT_gradU), "len gtg")
     print( GT_gradU[0].shape, "first elem of gtg")
     b = np.mean(GT_gradU, axis=0)
@@ -423,6 +425,7 @@ def create_theta_fisher(gradDesc_list: list, gradU_list: list) -> Theta:
     # print(len(b))
     print(b.shape)
     coef = np.linalg.solve(a, b)
+    # print("A",coef, "A")
     # coef = [y * 1/x for x, y in zip(a, b)]
     
     # Create new Theta instance
@@ -462,7 +465,8 @@ def create_theta_to_theta_star(theta: Theta, theta_star: Theta,n):
 # print(grad_list[0].shape, "grad list")
 # print(len(f_list))
 # print(f_list[0].shape)
-theta_fish = create_theta_fisher(G_list, f_list)
+theta_fish = create_theta_fisher(grad_list, f_list)
+print(theta_fish)
 # print(len(theta_fish["coef"]))
 
 # theta: Theta = pickle.load(open(path_theta, "rb"))
@@ -539,7 +543,7 @@ def thetaMSE(theta: Theta, theta_star: Theta):
     #    plt.plot(E_tot_ml_sorted, E_tot_ml_cdf, label=f"CDF theta n°{i}", alpha = 0.3)
     # plt.legend()
     # plt.show()
-print(thetaMSE(theta, theta_list[-1]))
+print(thetaMSE(theta, theta_fish))
 
 E_tot_fish = []
 for ats in atoms :
@@ -553,3 +557,5 @@ E_tot_ml_array = (-1) * np.array(E_tot_fish)
 E_tot_ml_sorted, E_tot_ml_cdf = cdf(E_tot_ml_array)
 plt.plot(E_tot_ml_sorted, E_tot_ml_cdf, label=f"CDF theta fisher", alpha = 0.3)
 plt.show()
+
+print(G_list[0]-G_list[1])
