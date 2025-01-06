@@ -41,11 +41,6 @@ md_data: Dict[str, MDData] = pickle.load(open(path_data, "rb"))
 theta: Theta = pickle.load(open(path_theta, "rb"))
 
 keys = list(md_data.keys())
-# print(md_data[keys[0]].keys())
-# print(type(md_data[keys[0]]['atoms'][0]))
-# print(md_data[keys[0]]['atoms'][1])
-# print(md_data[keys[0]]['atoms'][1].get_array("forces"))
-#print(md_data[keys[0]]['atoms'][1].get_positions())
 
 E_tot_ml_list = []
 G_list = []
@@ -256,252 +251,276 @@ plt.grid(True)
 plt.show()
 
 
-# # Objective function to minimize the difference between empirical and theoretical CDF
-# def objective_function(params, energies_sorted, empirical_cdf_vals):
-#     T = params[0]  # Temperature
-#     if T <= 0:  # Ensure valid temperature
-#         return np.inf
-#     # Generate the theoretical CDF for the current temperature
-#     theoretical_cdf = boltzmann_cdf(energies_sorted, T)
-#     # Compute the sum of squared differences between the empirical and theoretical CDFs
-#     return np.sum((theoretical_cdf - empirical_cdf_vals)**2)
-
-
-# # Generate empirical CDF values
-# empirical_cdf_vals = energies_cdf
-
-
-# # Initial guess for temperature
-# initial_guess = [1000]  # Temperature in Kelvin
-# from scipy.optimize import minimize
-# # Minimize the objective function
-# result = minimize(
-#     objective_function, initial_guess,
-#     args=(energies_sorted, empirical_cdf_vals),
-#     bounds=[(1e-6, None)],  # Temperature must be positive
-#     method='L-BFGS-B'
-# )
-
-# # Optimal temperature
-# T_opt = result.x[0]
-
-# # Generate theoretical CDF with the optimized temperature
-# theoretical_cdf = boltzmann_cdf(energies_sorted, T_opt)
-
-# # Plotting the CDFs
-# plt.figure(figsize=(8, 6))
-# plt.plot(energies_sorted, empirical_cdf_vals, label='Empirical CDF', color='blue')
-# plt.plot(energies_sorted, theoretical_cdf, label=f'Optimized Boltzmann CDF (T={T_opt:.2f} K)', color='orange')
-# plt.xlabel('Energy')
-# plt.ylabel('CDF')
-# plt.title('Empirical vs Optimized Boltzmann CDF')
-# plt.legend()
-# plt.grid()
-# plt.show()
-
-
-# # EN TRAVAUX : (pas fini)
-# def KL_boltzmann(energies: List[float], temperature: float) -> float:
-#     """
-#     Evaluate how Boltzmannian the energy distribution is.
-#     Parameters:
-#     - energies: List of energy values from the dataset.
-#     - temperature: Temperature in Kelvin at which the distribution should be evaluated. # noqa:
-
-#     Returns:
-#     - A score representing the closeness to a Boltzmann distribution.
-#       Lower values indicate a closer match.
-#     """
-#     k_B = Boltzmann  # Boltzmann constant in J/K (SI units)
-#     # Convert energies to SI units if needed (assuming they're in eV)
-#     energies_J = np.array(energies) * 1.60218e-19  # eV to Joules
-#     # Compute log-Boltzmann weights for numerical stability
-#     log_boltzmann_weights = -energies_J / (k_B * temperature)
-
-#     # Log-Sum-Exp Trick
-#     max_log_weight = np.max(log_boltzmann_weights)  # Maximum value for numerical stability
-#     log_boltzmann_probs = log_boltzmann_weights - (max_log_weight + np.log(np.sum(np.exp(log_boltzmann_weights - max_log_weight))))
-#     # Convert back to probabilities
-#     boltzmann_probs = np.exp(log_boltzmann_probs)
-
-#     # Estimate the empirical energy distribution :
-#     # (interpolating an histogram, might be useful to look into more details here
-#     hist, bin_edges = np.histogram(energies_J, bins='auto', density=True)
-#     bin_centers = (bin_edges[:-1] + bin_edges[1:]) / 2
-#     # Interpolate the empirical histogram onto the Boltzmann probabilities
-#     empirical_probs = np.interp(energies_J, bin_centers, hist)
-
-#     # Normalization
-#     empirical_probs /= empirical_probs.sum()
-#     # Avoid zero probabilities for KL divergence calculation
-#     empirical_probs = np.clip(empirical_probs, a_min=1e-12, a_max=None)
-#     boltzmann_probs = np.clip(boltzmann_probs, a_min=1e-12, a_max=None)
-#     # Compute the Kullback-Leibler (KL) divergence between the distributions
-#     kl_divergence = entropy(empirical_probs, boltzmann_probs)
-#     return kl_divergence
-
-
-# # Evaluate Boltzmannian nature at a specific temperature
-# temperature = 200  # Example temperature in Kelvin
-# boltzmann_score_dataset = KL_boltzmann(all_energies, temperature)
-# boltzmann_score_simulation = KL_boltzmann(e_ml, temperature)
-# print(f"Boltzmannian score (KL divergence): {boltzmann_score_dataset}")
-# print(f"Boltzmannian score (KL divergence): {boltzmann_score_simulation}")
-# # k_B = 1.380649e-23  # Boltzmann constant in J/K
-# # boltzmann_weights = np.exp(-energies_si / (k_B * temperature))
-# # boltzmann_weights /= np.sum(boltzmann_weights)  # Normalize weights
-# # Generate Boltzmann distribution (sorted for CDF plotting)
-# # sorted_energies, boltzmann_cdf = cdf(energies_si)
-# #energies_sorted, energies_cdf = cdf(energies_)
-# #e_ml_sorted, e_ml_cdf = cdf(e_ml_)
-
-# def boltzmann_cdf(energy, T):
-#     """
-#     Calculate the Boltzmann CDF for a given temperature T using the log-sum-exp trick.
-#     :param energy: Array of energy values
-#     :param T: Temperature in Kelvin
-#     :return: Array of CDF values
-#     """
-#     kT = Boltzmann * T
-#     scaled_energy = -energy / kT
-#     # Compute log-sum-exp for normalization
-#     # max_scaled_energy = np.max(scaled_energy)
-#     #log_sum_exp = max_scaled_energy + np.log(np.sum(np.exp(scaled_energy - max_scaled_energy)))
-#     # Calculate the normalized CDF
-#     # log_cdf = np.log(np.cumsum(np.exp(scaled_energy - max_scaled_energy)))  # Cumulative sum in log space
-#     # log_cdf -= log_sum_exp  # Normalize in log space
-#     # Return the CDF in standard space
-#     cdf = np.exp(scaled_energy)
-#     return cdf
-
-
-
-
 # kl distance between solution, fisher distance
 # distance between parameters ?
 # theta* for kl, for rmse, for fisher.
-
 # packaging python project
-
 # find best boltzmann cdf to your dataset.
 
 # # paysage sur les données
+# # paysage sur les données
 def create_theta_fisher(gradDesc_list: list, gradU_list: list) -> Theta:
-    """
-    Creates a Theta instance using Fisher's method
+   """
+   Creates a Theta instance using Fisher's method
+   
+   Args:
+       G: Input Xx3NxD (as list)
+       gradU_list: Gradient list
+   
+   Returns:
+       Theta: TypedDict with coef and intercept
+   """
+   #original_shape = np.array(gradDesc_list).shape
+   reshaped = [g.reshape(260, -1) for g in gradDesc_list]
+   gradDescT_list = [g.T for g in reshaped]
+   print(gradDescT_list[0].shape, "/////")
+   print(reshaped[0].shape)
+   GT_G = [np.matmul(g, g_t) for g_t, g in zip(gradDescT_list, reshaped)]
+   # GT_G = np.matmul(G_array.T, G_array)
+   print(len(GT_G), "len gtg")
+   print(GT_G[0].shape, "first elem of gtg")
+   #a = [np.mean(m) for m in GT_G]
+   a = np.mean(GT_G, axis=0)
+   
+   # Calculate second expectancy (b)
+   GT_gradU = [np.matmul(gradU, g_t) for g_t, gradU in zip(gradDescT_list, reshaped)]
+   # GT_gradU = np.matmul(G_array.T, gradU_array)
+   print(len(GT_gradU), "len gtg")
+   print( GT_gradU[0].shape, "first elem of gtg")
+   b = np.mean(GT_gradU, axis=0)
+   
+   # Solve the system
+   # print(len(a))
+   print(a.shape)
+   # print(len(b))
+   print(b.shape)
+   coef = np.linalg.solve(a, b)
+   new_theta: Theta = {
+       "coef": coef,
+       "intercept": 0.0
+   }
+   
+   return new_theta
+# def create_theta_fisher(gradDesc_list: list, gradU_list: list) -> Theta:
+#     """
+#     Creates a Theta instance using Fisher's method
     
-    Args:
-        G: Input Xx3NxD (as list)
-        gradU_list: Gradient list
+#     Args:
+#         G: Input Xx3NxD (as list)
+#         gradU_list: Gradient list
     
-    Returns:
-        Theta: TypedDict with coef and intercept
-    """
-    gradDescT_list = [g.T for g in gradDesc_list]
-    GT_G = [np.matmul(g_t, g) for g_t, g in zip(gradDescT_list, gradDesc_list)]
-    # GT_G = np.matmul(G_array.T, G_array)
-    # print("info")
-    print(len(GT_G), "len gtg")
-    print( GT_G[0].shape, "first elem of gtg")
-    #a = [np.mean(m) for m in GT_G]
-    a = np.mean(GT_G, axis=0)
+#     Returns:
+#         Theta: TypedDict with coef and intercept
+#     """
+#     gradDescT_list = [g.T for g in gradDesc_list]
+#     GT_G = [np.matmul(g_t, g) for g_t, g in zip(gradDescT_list, gradDesc_list)]
+#     # GT_G = np.matmul(G_array.T, G_array)
+#     # print("info")
+#     print(len(GT_G), "len gtg")
+#     print( GT_G[0].shape, "first elem of gtg")
+#     #a = [np.mean(m) for m in GT_G]
+#     a = np.mean(GT_G, axis=0)
     
-    # Calculate second expectancy (b)
-    GT_gradU = [np.matmul(g_t, gradU) for g_t, gradU in zip(gradDescT_list, gradU_list)]
-    # GT_gradU = np.matmul(G_array.T, gradU_array)
-    #b = [np.mean(gU) for gU in GT_gradU]
-    print(len(GT_gradU), "len gtg")
-    print( GT_gradU[0].shape, "first elem of gtg")
-    b = np.mean(GT_gradU, axis=0)
+#     # Calculate second expectancy (b)
+#     GT_gradU = [np.matmul(g_t, gradU) for g_t, gradU in zip(gradDescT_list, gradU_list)]
+#     # GT_gradU = np.matmul(G_array.T, gradU_array)
+#     #b = [np.mean(gU) for gU in GT_gradU]
+#     print(len(GT_gradU), "len gtg")
+#     print( GT_gradU[0].shape, "first elem of gtg")
+#     b = np.mean(GT_gradU, axis=0)
     
-    # Solve the system
-    # print(len(a))
-    print(a.shape)
-    # print(len(b))
-    print(b.shape)
-    coef = np.linalg.solve(a, b)
-    # coef = [y * 1/x for x, y in zip(a, b)]
+#     # Solve the system
+#     # print(len(a))
+#     print(a.shape)
+#     # print(len(b))
+#     print(b.shape)
+#     coef = np.linalg.solve(a, b)
+#     # coef = [y * 1/x for x, y in zip(a, b)]
+#     print(coef[0].shape)
+#     # Create new Theta instance
+#     theta_star_coeff_array = np.mean(np.array(coef), axis=1)
+#     new_coef = theta_star_coeff_array.tolist()
+#     new_theta: Theta = {
+#         "coef": new_coef,
+#         "intercept": 0.0
+#     }
     
-    # Create new Theta instance
-    new_theta: Theta = {
-        "coef": coef,
-        "intercept": 0.0
-    }
-    
-    return new_theta
+#     return new_theta
 
 
 def create_theta_to_theta_star(theta: Theta, theta_star: Theta,n):
-    t_list = np.linspace(0, 1, n) 
-    # print(t_list)
-    theta_list = [] 
-    for t in t_list :
-        print(t)
-        theta_coeff_array = np.array(theta["coef"])
-        theta_star_coeff_array = np.mean(np.array(theta_star["coef"]), axis=1)
-        new_theta_coef_array = (1-t)*theta_coeff_array + t*theta_star_coeff_array
-        new_theta_coef = new_theta_coef_array.tolist()
+   t_list = np.linspace(0, 1, n) 
+   # print(t_list)
+   theta_list = [] 
+   for t in t_list :
+       print(t)
+       theta_coeff_array = np.array(theta["coef"])
+       theta_star_coeff_array = np.mean(np.array(theta_star["coef"]), axis=1)
+       new_theta_coef_array = (1-t)*theta_coeff_array + t*theta_star_coeff_array
+       new_theta_coef = new_theta_coef_array.tolist()
 
-        new_theta_inter = (1-t)*theta["intercept"] + t*theta_star["intercept"]
-        new_theta: Theta = {
-        "coef": new_theta_coef,
-        "intercept": new_theta_inter 
-        }
-        theta_list.append(new_theta)
-    return theta_list
+       new_theta_inter = (1-t)*theta["intercept"] + t*theta_star["intercept"]
+       new_theta: Theta = {
+       "coef": new_theta_coef,
+       "intercept": new_theta_inter 
+       }
+       theta_list.append(new_theta)
+   return theta_list
 
 
-theta_fish = create_theta_fisher(G_list, f_list)
-
+theta_fish = create_theta_fisher(grad_list, f_list)
+print(theta_fish)
 
 def plot_loss_theta_to_theta_star(theta_list):
-    print("longeur theta_list", len(theta_list))
-    for i, current_theta in enumerate(theta_list) :
-        print(i)
-        E_tot_current_theta_list = []
-        for ats in atoms :
-            # descripteurs D \in R^{M \times D}
-            desc = ats.get_array("milady-descriptors")
-            e_ml = DotProductDesc(current_theta, desc)
-            E_tot_ml = np.sum(e_ml)
-            E_tot_current_theta_list.append(E_tot_ml)
+   print("longeur theta_list", len(theta_list))
+   for i, current_theta in enumerate(theta_list) :
+       print(i)
+       E_tot_current_theta_list = []
+       for ats in atoms :
+           # descripteurs D \in R^{M \times D}
+           desc = ats.get_array("milady-descriptors")
+           e_ml = DotProductDesc(current_theta, desc)
+           E_tot_ml = np.sum(e_ml)
+           E_tot_current_theta_list.append(E_tot_ml)
 
-        E_tot_ml_array = (-1) * np.array(E_tot_current_theta_list)
-        E_tot_ml_sorted, E_tot_ml_cdf = cdf(E_tot_ml_array)
-        plt.plot(E_tot_ml_sorted, E_tot_ml_cdf, label=f"CDF theta n°{i}", alpha = 0.3)
-    plt.legend()
-    plt.show()
+       E_tot_ml_array = (-1) * np.array(E_tot_current_theta_list)
+       E_tot_ml_sorted, E_tot_ml_cdf = cdf(E_tot_ml_array)
+       plt.plot(E_tot_ml_sorted, E_tot_ml_cdf, label=f"CDF theta n°{i}", alpha = 0.3)
+   plt.legend()
+   plt.show()
 # :)
 # now compare theta fisher and theta normal
 theta_list = create_theta_to_theta_star(theta, theta_fish, 4)
 print(len(theta_list), "LEN THETAS")
-#thetaMSE(theta, theta_list[0])
-
 
 def thetaMSE(theta: Theta, theta_star: Theta):
-    # print(t_list)
-    arr1 = np.array(theta["coef"])
-    arr2 = np.array(theta_star["coef"])
+   # print(t_list)
+   arr1 = np.array(theta["coef"])
+   arr2 = np.array(theta_star["coef"])
 
-    # Compute the Mean Squared Error
-    print(arr1,"STOP")
-    print((arr1).max())
-    print(arr2)
-    print((arr2).max())
-    mse = np.mean((arr1 - arr2) ** 2) #np.mean(arr2, axis=1))
-    return mse
+   # Compute the Mean Squared Error
+   print(arr1,"STOP")
+   print((arr1).max())
+   print(arr2)
+   print((arr2).max())
+   mse = np.mean((arr1 - arr2) ** 2) #np.mean(arr2, axis=1))
+   return mse
+
+print(thetaMSE(theta, theta_fish))
+print("ok")
 
 
-print(thetaMSE(theta, theta_list[-1]))
-E_tot_fish = []
-for ats in atoms :
-# descripteurs D \in R^{M \times D}
-    desc = ats.get_array("milady-descriptors")
-    e_ml = DotProductDesc(theta_fish, desc)    
-    E_tot_ml = np.sum(e_ml)
-    E_tot_fish.append(E_tot_ml)
+E_tot_ml_list2 = []
+E_tot_ml_list3 = []
 
-E_tot_ml_array = (-1) * np.array(E_tot_fish)
-E_tot_ml_sorted, E_tot_ml_cdf = cdf(E_tot_ml_array)
-plt.plot(E_tot_ml_sorted, E_tot_ml_cdf, label=f"CDF theta fisher", alpha = 0.3)
+for key, val in md_data.items():
+    atoms = val["atoms"]
+    energies = val["energies"]
+    # Lecture des descripteurs...
+    for ats, ene in zip(atoms, energies):
+        # descripteurs D \in R^{M \times D}
+        desc = ats.get_array("milady-descriptors")
+        # évaluation de l'énergie par le modèle linéaire
+        e_ml = DotProductDesc(theta, desc)
+        E_tot_ml = np.sum(e_ml)
+        E_tot_ml_list2.append(E_tot_ml)
+        
+        e_ml3 = DotProductDesc(theta_fish, desc)
+        E_tot_ml3 = np.sum(e_ml3)
+        E_tot_ml_list3.append(E_tot_ml3)
+        
+all_energies = [ene for key, val in md_data.items() for ene in val["energies"]]
+energies_ = (-1) * np.array(all_energies)
+E_tot_ml_array2 = (-1) * np.array(E_tot_ml_list2)
+E_tot_ml_array3 = (-1) * np.array(E_tot_ml_list3)
+print(min(E_tot_ml_array3))
+
+# Calculate CDFs
+energies_sorted, energies_cdf = cdf(energies_)
+E_tot_ml_sorted2, E_tot_ml_cdf2 = cdf(E_tot_ml_array2)
+E_tot_ml_sorted3, E_tot_ml_cdf3 = cdf(E_tot_ml_array3)
+
+plt.figure(figsize=(10, 6))
+# plt.plot(E_transformed, bolcdf, label=f"boltzmann cdf à {Tb}", color="purple")
+plt.plot(E_tot_ml_sorted2, E_tot_ml_cdf2, label="E_tot_ml CDF", color="orange")
+# plt.plot(E_tot_ml_sorted3, E_tot_ml_cdf3, label="E_tot_ml CDF", color="green")
+plt.plot(energies_sorted, energies_cdf, label="Energy CDF", color="blue")
+
+
+# E_tot_fish = []
+# for ats in atoms :
+# # descripteurs D \in R^{M \times D}
+#    desc = ats.get_array("milady-descriptors")
+#    e_ml = DotProductDesc(theta, desc)    
+#    E_tot_ml = np.sum(e_ml)
+#    E_tot_fish.append(E_tot_ml)
+
+# E_tot_ml_array = (-1) * np.array(E_tot_fish)
+# E_tot_ml_sorted, E_tot_ml_cdf = cdf(E_tot_ml_array)
+# plt.plot(E_tot_ml_sorted, E_tot_ml_cdf, label=f"CDF theta fisher", alpha = 0.3)
 plt.show()
+
+# print(G_list[0]-G_list[1])
+# theta_fish = create_theta_fisher(G_list, f_list)
+
+
+# def plot_loss_theta_to_theta_star(theta_list):
+#     print("longeur theta_list", len(theta_list))
+#     for i, current_theta in enumerate(theta_list) :
+#         print(i)
+#         E_tot_current_theta_list = []
+#         for ats in atoms :
+#             # descripteurs D \in R^{M \times D}
+#             desc = ats.get_array("milady-descriptors")
+#             e_ml = DotProductDesc(current_theta, desc)
+#             E_tot_ml = np.sum(e_ml)
+#             E_tot_current_theta_list.append(E_tot_ml)
+
+#         E_tot_ml_array = (-1) * np.array(E_tot_current_theta_list)
+#         E_tot_ml_sorted, E_tot_ml_cdf = cdf(E_tot_ml_array)
+#         plt.plot(E_tot_ml_sorted, E_tot_ml_cdf, label=f"CDF theta n°{i}", alpha = 0.3)
+#     plt.legend()
+#     plt.show()
+# # :)
+# # now compare theta fisher and theta normal
+# theta_list = create_theta_to_theta_star(theta, theta_fish, 4)
+# print(len(theta_list), "LEN THETAS")
+
+
+
+# def thetaMSE(theta: Theta, theta_star: Theta):
+#     # print(t_list)
+#     arr1 = np.array(theta["coef"])
+#     arr2 = np.array(theta_star["coef"])
+
+#     # Compute the Mean Squared Error
+#     print(arr1,"STOP")
+#     print((arr1).max())
+#     print(arr2)
+#     print((arr2).max())
+#     mse = np.mean((arr1 - arr2) ** 2) #np.mean(arr2, axis=1))
+#     return mse
+
+# thetaMSE(theta, theta_list[0])
+# print(thetaMSE(theta, theta_fish))
+
+
+# E_tot_fish = []
+# for ats in atoms :
+# # descripteurs D \in R^{M \times D}
+#     desc = ats.get_array("milady-descriptors")
+#     e_ml = DotProductDesc(theta, desc)    
+#     E_tot_ml = np.sum(e_ml)
+#     E_tot_fish.append(E_tot_ml)
+
+# E_tot_ml_array = (-1) * np.array(E_tot_fish)
+# E_tot_ml_sorted, E_tot_ml_cdf = cdf(E_tot_ml_array)
+# plt.plot(E_tot_ml_sorted, E_tot_ml_cdf, label=f"CDF theta fisher", alpha = 0.3)
+# plt.show()
+# #
+
+
+
+
+
+
