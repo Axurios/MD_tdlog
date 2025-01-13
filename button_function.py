@@ -1,5 +1,6 @@
 from PyQt5.QtWidgets import QFileDialog
-from plot import CDF_plot, CDF_plot2, CDF_fisher
+from plot import CDF_plot, CDF_plot2, CDF_fisher, ks_plot
+from NNmanager import NNimport
 
 
 def select_md_file(self):
@@ -51,6 +52,7 @@ def select_theta_file(self):
         self.show_error(f"{e}, clearing all prevous data on Theta")
 
 
+# Plotting the different scientific computations and statistical test
 def compute_and_plot_distribution(self):
     """ploting distribution of each simulation ending (of each key)"""
     if (self.data.md_data_loaded and self.data.theta_loaded):
@@ -64,3 +66,16 @@ def compute_and_plot_distribution(self):
 def compute_theta_of_fischer(self):
     fig  = CDF_fisher(self.data,self.choice1.currentText(), self.choice3.currentText(), self.choice2.currentText(), 1 )
     self.show_plot(fig)
+
+def compute_ks_test(self):
+    fig  = ks_plot(self.data,self.choice1.currentText(), self.choice3.currentText(), self.choice2.currentText(), 1 )
+    self.show_plot(fig)
+
+
+
+# Neural Network Manager
+# importing NN model :
+def nn_import_button(self):
+    pass
+    # fig  = ks_plot(self.data,self.choice1.currentText(), self.choice3.currentText(), self.choice2.currentText(), 1 )
+    # self.show_plot(fig)
