@@ -1,13 +1,15 @@
 from PyQt5.QtWidgets import QFileDialog
-from plot import CDF_plot, CDF_plot2, CDF_fisher
+from plot import CDF_plot2, CDF_fisher
 
 
 def select_md_file(self):
     """ Function used for load MD_file in UI"""
     try:
+        #open file
         file_name, _ = QFileDialog.getOpenFileName(self, "Select MD Data File",
                                                    "", "All Files (*)")
         if file_name:
+            # getting strings and file path
             choices = self.data.load_md_data(file_name)
             self.lbl1.setText(f"MD File Path : {file_name}")
 
@@ -52,15 +54,42 @@ def select_theta_file(self):
 
 
 def compute_and_plot_distribution(self):
-    """ploting distribution of each simulation ending (of each key)"""
-    if (self.data.md_data_loaded and self.data.theta_loaded):
-        fig = CDF_plot2(self.data,self.choice1.currentText())
-        self.show_plot(fig)
-    elif not self.data.md_data_loaded:
-        self.show_error("No MD_Data file")
-    else:
-        self.show_error("No Theta file")
+    try :
+        #ploting distribution of each simulation ending (of each key) with the energy distribution of theta_file
+        if (self.data.md_data_loaded and self.data.theta_loaded):
+            fig = CDF_plot2(self.data,self.choice1.currentText())
+            self.show_plot(fig)
+        elif not self.data.md_data_loaded:
+            self.show_error("No MD_Data file")
+        else:
+            self.show_error("No Theta file")
+            
+    except Exception as e:
+        self.show_error(f"{e}, Probable error of input strings or Data errors.")
 
 def compute_theta_of_fischer(self):
-    fig  = CDF_fisher(self.data,self.choice1.currentText(), self.choice3.currentText(), self.choice2.currentText(), 1 )
-    self.show_plot(fig)
+    try : 
+        #verify if strings are chosen correctly
+
+        descriptorstring = self.choice1.currentText()
+        gradientstring = self.choice3.currentText()
+        forcestring  = self.choice2.currentText()
+
+        if descriptorstring == gradientstring :
+            self.show_error("2 Same parameters. Verify the parameters")
+        elif descriptorstring == forcestring :
+            self.show_error("2 Same parameters. Verify the parameters")
+        elif gradientstring ==  forcestring :
+            self.show_error("2 Same parameters. Verify the parameters")
+
+        #ploting energy distribution with parameters computed based on fisher
+
+        elif (self.data.md_data_loaded and self.data.theta_loaded):
+            fig  = CDF_fisher(self.data, descriptorstring, gradientstring, forcestring, 1 )    
+            self.show_plot(fig)
+        elif not self.data.md_data_loaded:
+            self.show_error("No MD_Data file")
+        else:
+            self.show_error("No Theta file")
+    except Exception as e:
+        self.show_error(f"{e}, Probable error of input strings or Data errors.")
