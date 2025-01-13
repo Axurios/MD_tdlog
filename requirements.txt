@@ -1,19 +1,27 @@
 # Data manipulation and analysis
-pandas==1.5.3  # Adjust to latest stable version as needed
-numpy==1.23.5
+pandas>=1.5.3  # Adjust to latest stable version as needed
+numpy>=1.23.5
 
 # Deep learning frameworks
-torch==2.0.1      # For PyTorch; adjust to preferred version
+#torch>=2.0.1      # For PyTorch; adjust to preferred version
 
 # Visualization
-matplotlib==3.6.2
-seaborn==0.12.1
+matplotlib>=3.6.2
+seaborn>=0.12.1
 
 # Graphical User Interfaces
-PyQt5==5.15.9
+PyQt5>=5.15.9
 
 # Scientific computing and constants
-scipy==1.10.1
+scipy>=1.10.1
 
 # Atomistic simulation
-ase==3.22.1
+ase>=3.22.1
+
+#test
+pytest>=8.3.4
+
+#build
+build>=1.2.2
+
+
