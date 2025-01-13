@@ -60,6 +60,109 @@ class MSE(Module):
         self.gradInput = -2*(target - x) / x.shape[0]
         return self.gradInput
 
+class MAELoss(Module):
+    def __init__(self, num_classes=10):
+        super(MAELoss, self).__init__()
+        self.num_classes = num_classes
+
+    def make_target(self, x, labels):
+        target = np.zeros([x.shape[0], self.num_classes])
+        for i in range(x.shape[0]):
+            target[i, labels[i]] = 1
+        return target
+
+    def forward(self, x, labels):
+        target = self.make_target(x, labels)
+        self.output = np.sum(np.abs(target - x), axis=1)
+        return np.mean(self.output)
+
+    def forward_grid(self, x, labels):
+        rows, cols = x.shape
+        result = np.empty((rows, cols), dtype=object)
+
+        for i in range(rows):
+            for j in range(cols):
+                result[i,j] = self.forward(x[i,j],labels)
+        
+        return result
+    
+    def backward(self, x, labels):
+        target = self.make_target(x, labels)
+        self.gradInput = np.sign(x - target) / x.shape[0]
+        return self.gradInput
+
+
+class HuberLoss(Module):
+    def __init__(self, delta=1.0, num_classes=10):
+        super(HuberLoss, self).__init__()
+        self.delta = delta
+        self.num_classes = num_classes
+
+    def make_target(self, x, labels):
+        target = np.zeros([x.shape[0], self.num_classes])
+        for i in range(x.shape[0]):
+            target[i, labels[i]] = 1
+        return target
+
+    def forward(self, x, labels):
+        target = self.make_target(x, labels)
+        diff = np.abs(target - x)
+        
+        quadratic = np.minimum(diff, self.delta)
+        linear = diff - quadratic
+        
+        self.output = 0.5 * quadratic**2 + self.delta * linear
+        return np.mean(np.sum(self.output, axis=1))
+    
+    def forward_grid(self, x, labels):
+        rows, cols = x.shape
+        result = np.empty((rows, cols), dtype=object)
+
+        for i in range(rows):
+            for j in range(cols):
+                result[i,j] = self.forward(x[i,j],labels)
+        
+        return result
+
+    def backward(self, x, labels):
+        target = self.make_target(x, labels)
+        diff = x - target
+        
+        self.gradInput = np.where(np.abs(diff) <= self.delta, diff, self.delta * np.sign(diff)) / x.shape[0]
+        return self.gradInput
+
+
+class HingeLoss(Module):
+    def __init__(self, num_classes=10):
+        super(HingeLoss, self).__init__()
+        self.num_classes = num_classes
+
+    def make_target(self, x, labels):
+        target = -np.ones([x.shape[0], self.num_classes])
+        for i in range(x.shape[0]):
+            target[i, labels[i]] = 1
+        return target
+
+    def forward(self, x, labels):
+        target = self.make_target(x, labels)
+        self.output = np.maximum(0, 1 - target * x)
+        return np.mean(np.sum(self.output, axis=1))
+    
+    def forward_grid(self, x, labels):
+        rows, cols = x.shape
+        result = np.empty((rows, cols), dtype=object)
+
+        for i in range(rows):
+            for j in range(cols):
+                result[i,j] = self.forward(x[i,j],labels)
+        
+        return result
+
+    def backward(self, x, labels):
+        target = self.make_target(x, labels)
+        grad = -target * (self.output > 0).astype(float)
+        self.gradInput = grad / x.shape[0]
+        return self.gradInput
 
 class Linear(Module):
     """
@@ -149,21 +252,21 @@ class SimpleMLP(Module):
     couches linéaires, avec une non-linéarité ReLU au milieu.
     """
 
-    def __init__(self, in_dimension=784, hidden_dimension=64, non_linearity = ReLU, num_classes=10):
+    def __init__(self, in_dimension=784, hidden_dimension=64, num_classes=10):
         super(SimpleMLP, self).__init__()
         self.fc1 = Linear(in_dimension, hidden_dimension)
-        self.non_lin1 = non_linearity()
+        self.relu1 = ReLU()
         self.fc2 = Linear(hidden_dimension, num_classes)
 
     def forward(self, x):
         x = self.fc1.forward(x)
-        x = self.non_lin1.forward(x)
+        x = self.relu1.forward(x)
         x = self.fc2.forward(x)
         return x
 
     def backward(self, x, gradient):
-        gradient = self.fc2.backward(self.non_lin1.output, gradient)
-        gradient = self.non_lin1.backward(self.fc1.output, gradient)
+        gradient = self.fc2.backward(self.relu1.output, gradient)
+        gradient = self.relu1.backward(self.fc1.output, gradient)
         gradient = self.fc1.backward(x, gradient)
         return gradient
 
@@ -186,14 +289,14 @@ class SimpleMLP(Module):
             rows, cols = W1.shape
             for i in range(rows):
                 for j in range(cols):
-                    x[i,j] = self.non_lin1.forward(x[i,j])
+                    x[i,j] = self.relu1.forward(x[i,j])
                     x[i,j] = self.fc2.forward(x[i,j])
             return x, W1, W2
         
-        else : # on change 2 paramètres dans la couche linéaire 1
+        else : # on change 2 paramètres dans la couche linéaire 2
             coord_w1, coord_w2, W1, W2 = self.fc2.var_rd_param(delta,nb_val)
             x = self.fc1.forward(x)
-            x = self.non_lin1.forward(x) 
+            x = self.relu1.forward(x) 
             x = self.fc2.forward_modif_val(x,W1,W2,coord_w1,coord_w2)
             return x, W1, W2
             
@@ -232,6 +335,48 @@ class DoubleMLP(Module):
         self.fc3.gradientStep(lr)
         self.fc2.gradientStep(lr)
         self.fc1.gradientStep(lr)
+    
+    def forward_grid(self,x, delta, nb_val):
+        """
+        On choisit au hasard l'une des couches linéaires dans laquelle on va faire varier 2 poids au hasard avec la fonction var_rd_param.
+        On calcule les prédictions du réseau de neuronnes lorsque les 2 poids prennent les valeurs du plan renvoyé par var_rd_param.
+        Cette fonction permettra de visualiser les variations de la loss lorsqu'on fait varier les 2 poids choisis
+        """
+
+        rd_int = rd.randint(0,2)
+        
+        if rd_int == 0: # on change 2 paramètres dans la couche linéaire 1
+            coord_w1, coord_w2, W1, W2 = self.fc1.var_rd_param(delta,nb_val)
+            x = self.fc1.forward_modif_val(x,W1,W2,coord_w1,coord_w2)
+            rows, cols = W1.shape
+            for i in range(rows):
+                for j in range(cols):
+                    x[i,j] = self.relu1.forward(x[i,j])
+                    x[i,j] = self.fc2.forward(x[i,j])
+                    x[i,j] = self.relu2.forward(x[i,j])
+                    x[i,j] = self.fc3.forward(x[i,j])
+            return x, W1, W2
+        
+        elif rd_int == 1: # on change 2 paramètres dans la couche linéaire 2
+            coord_w1, coord_w2, W1, W2 = self.fc2.var_rd_param(delta,nb_val)
+            x = self.fc1.forward(x)
+            x = self.relu1.forward(x) 
+            x = self.fc2.forward_modif_val(x,W1,W2,coord_w1,coord_w2)
+            rows, cols = W1.shape
+            for i in range(rows):
+                for j in range(cols):
+                    x[i,j] = self.relu2.forward(x[i,j])
+                    x[i,j] = self.fc3.forward(x[i,j])
+            return x, W1, W2
+        
+        else : # on change 2 paramètres dans la couche linéaire 3
+            coord_w1, coord_w2, W1, W2 = self.fc3.var_rd_param(delta,nb_val)
+            x = self.fc1.forward(x)
+            x = self.relu1.forward(x) 
+            x= self.fc2.forward(x)
+            x= self.relu2.forward(x)
+            x = self.fc3.forward_modif_val(x,W1,W2,coord_w1,coord_w2)
+            return x, W1, W2
 
 class DeepMLP(Module):
     """
@@ -272,48 +417,35 @@ class DeepMLP(Module):
         for layer in self.layers:
             if isinstance(layer, Linear):
                 layer.gradientStep(lr)
+    
+    def forward_grid(self,x, delta, nb_val):
+        """
+        On choisit au hasard l'une des couches linéaires dans laquelle on va faire varier 2 poids au hasard avec la fonction var_rd_param.
+        On calcule les prédictions du réseau de neuronnes lorsque les 2 poids prennent les valeurs du plan renvoyé par var_rd_param.
+        Cette fonction permettra de visualiser les variations de la loss lorsqu'on fait varier les 2 poids choisis
+        """
+        nb_lin = len(self.layers)//2 + 1
+        rd_int = rd.randint(0,nb_lin-1)
 
-class Sigmoid(Module):
-    def __init__(self):
-        super(Sigmoid, self).__init__()
+        for i in range(rd_int*2):
+            x = self.layers[i].forward(x)
 
-    def forward(self, x):
-        self.output = 1 / (1 + np.exp(-x))
-        return self.output
+        coord_w1, coord_w2, W1, W2 = self.layers[rd_int*2].var_rd_param(delta,nb_val)
+        x = self.layers[rd_int*2].forward_modif_val(x,W1,W2,coord_w1,coord_w2)
+        rows, cols = W1.shape 
 
-    def backward(self, x, gradOutput):
-        self.gradInput = gradOutput * self.output * (1 - self.output)
-        return self.gradInput
+        for i in range(rows):
+            for j in range(cols):
+                for l in range(rd_int*2+1, len(self.layers)):
+                    x[i,j] = self.layers[l].forward(x[i,j])
 
-class LeakyReLU(Module):
-    def __init__(self, negative_slope=0.01):
-        super(LeakyReLU, self).__init__()
-        self.negative_slope = negative_slope
-
-    def forward(self, x):
-        self.output = np.where(x > 0, x, x * self.negative_slope)
-        return self.output
-
-    def backward(self, x, gradOutput):
-        self.gradInput = np.where(x > 0, gradOutput, gradOutput * self.negative_slope)
-        return self.gradInput
-
-class Tanh(Module):
-    def __init__(self):
-        super(Tanh, self).__init__()
-
-    def forward(self, x):
-        self.output = np.tanh(x)
-        return self.output
-
-    def backward(self, x, gradOutput):
-        self.gradInput = gradOutput * (1 - self.output**2)
-        return self.gradInput
+        return x, W1, W2
+    
 
 
 def train_iter(model, loss, batch_data, batch_labels, lr):
   """
-  effectue une itéation de la descente de gradient sur modèle
+  effectue une itération de la descente de gradient sur modèle
   """
   predicted_labels = model.forward(batch_data)
   loss_value = loss.forward(predicted_labels, batch_labels) # training loss
@@ -401,20 +533,3 @@ def train(model, loss, train_data, train_labels, val_data, val_labels, lr=1e-2, 
     plt.title('Training and Validation Performance')
     plt.legend()
     plt.show()
-
-data = np.load("mini_mnist.npz")
-
-train_data = data["train_data"]
-train_labels = data["train_labels"]
-test_data = data["test_data"]
-test_labels = data["test_labels"]
-
-N_val = int(0.1 * len(train_data))
-val_data = train_data[-N_val:]
-val_labels = train_labels[-N_val:]
-
-N_train = len(train_data) - N_val
-train_data = train_data[:N_train]
-train_labels = train_labels[:N_train]
-
-N_test = test_data.shape[0]

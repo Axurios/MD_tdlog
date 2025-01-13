@@ -34,14 +34,15 @@ plt.show()
 # ici on a que 2 vecteurs en paramètres donc ça marche mais il va falloir faire des projections ensuite, 
 # permettre de choisir les paramètres que l'on veut afficher -> peut-être en fonction des gradients
 # réfléchir à l'intégration au programme final 
-# en vrai c'est plutôt cool 
 # faire la documentation -> expliquer fonctions + dire pk on a choisi matplotlib 
 
 # on a peu près boltzmann mais il faut extraire totalement boltzmann 
 
-model = neural_network.SimpleMLP()
+# pour améliorer la performance on pourrait enregistrer les tests -> en tout cas il faut justifier pourquoi des fois c'est trop long ou pas
+
+model = neural_network.DeepMLP(hidden_features=[64,64,32,16])
 loss=neural_network.MSE()
-neural_network.train(model, loss, train_data, train_labels, val_data,val_labels)
+neural_network.train(model, loss, train_data, train_labels, val_data,val_labels, epochs=3)
 y,W1, W2= model.forward_grid(val_data,2,100)
 RMSE = loss.forward_grid(y,val_labels)
 
