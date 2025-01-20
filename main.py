@@ -1,5 +1,6 @@
 from helper import check_requirements
 from PyQt5.QtWidgets import QApplication
+
 from QT_GUI import Window
 check_requirements() 
 
