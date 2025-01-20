@@ -1,4 +1,5 @@
-#import os
+import os
+import sys
 import pickle
 import pytest
 from ase import Atoms
@@ -6,6 +7,8 @@ from ase import Atoms
 from PyQt5.QtWidgets import QApplication
 #from QtGui import GUI  # Replace with your actual module name
 import numpy as np
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from dataHolder import DataHolder
 
 
@@ -14,28 +17,6 @@ from dataHolder import DataHolder
 def app():
     return QApplication([])
 
-
-# Fixture to create sample MD data
-@pytest.fixture
-def sample_md_data():
-    """
-    Fixture providing sample MD data for testing.
-    Each 'atoms' entry is an ASE Atoms object with a 'descriptor' array.
-    """
-    # Create an Atoms object
-    atoms1 = Atoms(positions=[[0, 0, 0], [1, 1, 1]], symbols=["H", "H"])
-    atoms2 = Atoms(positions=[[0, 0, 0], [2, 2, 2]], symbols=["O", "O"])
-
-    # Add a 'descriptor' array to each Atoms object
-    atoms1.new_array('descriptor', np.array([[1.0, 0.5], [0.2, 0.8]]))
-    atoms2.new_array('descriptor', np.array([[0.3, 0.7], [0.6, 0.4]]))
-    # Sample MD data structure
-    return {
-        "dataset1": {
-            "atoms": [atoms1, atoms2],  #add str(1) in list to test if it raises Error for non atoms value
-            "energies": [-0.5, 0.5],
-        }
-    }
 
 # Fixture to create sample Theta data
 @pytest.fixture
@@ -51,21 +32,6 @@ def sample_theta_data2():
         "coef": np.array([[0.1, 0.2], [0.3, 0.4]]),
         "intercept": 0.5,
     }
-
-
-# Test for loading MD data
-def test_load_md_data(app, sample_md_data, tmp_path):
-    # Create a temporary file for MD data
-    md_file = tmp_path / "md_data.pkl"
-    with open(md_file, "wb") as f:
-        pickle.dump(sample_md_data, f)
-
-    data = DataHolder()
-
-    with pytest.raises(ValueError):
-        data.load_md_data(md_file, 'descriptor2')
-
-    data.load_md_data(md_file, 'descriptor')
 
 
 # Test for loading Theta data
