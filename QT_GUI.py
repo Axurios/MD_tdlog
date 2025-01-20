@@ -7,7 +7,8 @@ from PyQt5.QtWidgets import (
     QLabel,
     QPushButton,
     QVBoxLayout,
-    QMessageBox
+    QMessageBox,
+    QLineEdit
 )
 from PyQt5.QtCore import (
     QRect,
@@ -70,6 +71,7 @@ class Window(QMainWindow):
             self.create_buttons()
             self.create_labels()
             self.create_choices()
+            self.create_imput_boxes()
 
         def create_buttons(self):
 
@@ -124,6 +126,10 @@ class Window(QMainWindow):
             self.lbl2.setGeometry(QRect(x_line2, window_height//2,
                                         box1_width*4, box1_height))
             
+            self.lbl22 = QLabel("Temperature in Kelvin", self)
+            self.lbl22.setGeometry(QRect(x_box1, window_height//2 + box1_height + y_box1,
+                                          box1_width, box1_height))
+            
         def create_choices(self):
 
             self.choice1 = QComboBox(self)
@@ -135,6 +141,12 @@ class Window(QMainWindow):
             self.choice3 = QComboBox(self)
             self.choice3.setGeometry(QRect(x_line2, y_box1*4 + box1_height*3,
                                            int(box1_width*1.5), box1_height))
+        
+        def create_imput_boxes(self):
+            self.input1 = QLineEdit(self)
+            self.input1.setGeometry(QRect(x_line2, window_height//2 + box1_height + y_box1,
+                                          box1_width, box1_height))
+            self.input1.setPlaceholderText("Temperature in K")
             
         def show_plot(self, fig):
             plot_window = PlotWindow(fig)

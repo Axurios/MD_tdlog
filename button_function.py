@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import QFileDialog
 from plot import CDF_plot2, CDF_fisher
-
+from scipy.constants import Boltzmann
 
 def select_md_file(self):
     """ Function used for load MD_file in UI"""
@@ -75,17 +75,23 @@ def compute_theta_of_fischer(self):
         gradientstring = self.choice3.currentText()
         forcestring  = self.choice2.currentText()
 
+        text = self.input1.text()
+        temperature = int(text) if text else 300
+
         if descriptorstring == gradientstring :
             self.show_error("2 Same parameters. Verify the parameters")
         elif descriptorstring == forcestring :
             self.show_error("2 Same parameters. Verify the parameters")
         elif gradientstring ==  forcestring :
             self.show_error("2 Same parameters. Verify the parameters")
+        elif temperature <= 0 :
+            self.show_error("Temperature must be positive")
 
         #ploting energy distribution with parameters computed based on fisher
 
         elif (self.data.md_data_loaded and self.data.theta_loaded):
-            fig  = CDF_fisher(self.data, descriptorstring, gradientstring, forcestring, 1 )    
+            to_beta = 1/(Boltzmann*temperature)
+            fig  = CDF_fisher(self.data, descriptorstring, gradientstring, forcestring, beta = to_beta)    
             self.show_plot(fig)
         elif not self.data.md_data_loaded:
             self.show_error("No MD_Data file")
