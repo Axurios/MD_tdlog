@@ -565,7 +565,7 @@ def train_epoch(model, loss, data, labels, val_data, val_labels, lr, batch_size)
 
   return train_losses, val_losses, val_accuracies
 
-def train(model, loss, train_data, train_labels, val_data, val_labels, lr=1e-2, batch_size=16, epochs=1):
+def train(model, loss, train_data, train_labels, val_data, val_labels, lr=1e-2, batch_size=16, epochs=1, show=True):
 
     # On stocke les valeurs dans les listes suivantes toutes les 10 itérations
     all_train_losses = []
@@ -581,11 +581,12 @@ def train(model, loss, train_data, train_labels, val_data, val_labels, lr=1e-2, 
 
     iterations = range(0, len(all_train_losses) * 10, 10) 
 
-    plt.plot(iterations, all_train_losses, color='blue', label='Training Loss')
-    plt.plot(iterations, all_val_losses, color='red', label='Validation Loss')
-    plt.plot(iterations, all_val_accuracies, color='green', label='Validation Accuracy')
-    plt.xlabel('Iterations')
-    plt.ylabel('Loss / Accuracy')
-    plt.title('Training and Validation Performance')
-    plt.legend()
-    plt.show()
+    if show :
+        plt.plot(iterations, all_train_losses, color='blue', label='Training Loss')
+        plt.plot(iterations, all_val_losses, color='red', label='Validation Loss')
+        plt.plot(iterations, all_val_accuracies, color='green', label='Validation Accuracy')
+        plt.xlabel('Iterations')
+        plt.ylabel('Loss / Accuracy')
+        plt.title('Training and Validation Performance')
+        plt.legend()
+        plt.show()
