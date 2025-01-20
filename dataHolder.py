@@ -42,7 +42,6 @@ class DataHolder:
             self.md_data = pickle.load(f)
 
         check_md_format(self.md_data)
-
         # extract list of attributes in atoms
         first_item = list(self.md_data.keys())[0]
         dict = self.md_data[first_item]['atoms'][0].arrays
@@ -50,7 +49,6 @@ class DataHolder:
 
         # Extract energies
         self._extract_energies()
-
         self.md_data_loaded = True
         return list_of_attributes
 
@@ -60,7 +58,6 @@ class DataHolder:
         Args: file_path (str): Path to the pickle file containing Theta parameters
         Returns: dict: Metadata about the loaded Theta parameters
         """
-        
         with open(file_path, "rb") as f:
             self.theta = pickle.load(f)
             # Validate Theta data structure
@@ -70,7 +67,6 @@ class DataHolder:
             or "intercept" not in self.theta
         ):
             raise ValueError("Invalid Theta data format")
-
         self.theta_loaded = True
 
     def _extract_energies(self):
@@ -88,7 +84,6 @@ class DataHolder:
         # Convert energies and apply sign change
         energies_ = (-1) * np.array(all_energies)  # * self.eV_to_J  # Uncomment to convert to Joules
         E_tot_ml_array = (-1) * np.array(self.E_tot_ml_list)  # * self.eV_to_J  # Uncomment to convert to Joules
-
         return energies_, E_tot_ml_array
 
 
