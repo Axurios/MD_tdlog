@@ -1,12 +1,13 @@
 from helper import check_requirements
+check_requirements() 
 from PyQt5.QtWidgets import QApplication
 from QT_GUI import Window
-check_requirements() 
+from NNmanager import MessagePassingModel
+
 
 
 if __name__ == "__main__":
     import sys
-
     # Create the Qt Application
     app = QApplication(sys.argv)
     # Create and show the GUI

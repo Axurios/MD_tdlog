@@ -1,4 +1,5 @@
 from dataHolder import DataHolder
+from NNmanager import NNManager
 from PyQt5.QtWidgets import (
     QMainWindow,
     QApplication,
@@ -21,7 +22,8 @@ from button_function import (
     select_theta_file,
     compute_and_plot_distribution,
     compute_theta_of_fischer,
-    compute_ks_test
+    compute_ks_test,
+    nn_import_button
 )
 import matplotlib.figure
 from matplotlib.backends.backend_qt5agg import (
@@ -58,6 +60,7 @@ class Window(QMainWindow):
             super().__init__()
             self.create_ui()
             self.data = DataHolder()
+            self.nn_manager = NNManager()
         
         def create_ui(self):
             self.setWindowTitle("main page")
@@ -108,6 +111,16 @@ class Window(QMainWindow):
                                         window_height-box1_height*3-y_box1*3,
                                         box1_width, box1_height))
             self.btn5.clicked.connect(lambda: compute_ks_test(self))
+
+
+            # launch neural network manager
+            self.nn_button = QPushButton("Manage Neural Networks", self)
+            self.nn_button.setGeometry(QRect(window_width-box1_width-x_box1,
+                                        window_height-box1_height*4-y_box1*4,
+                                        box1_width, box1_height))
+            self.nn_button.clicked.connect(lambda: nn_import_button(self))
+            # self.layout.addWidget(self.nn_button)  
+
             
         def create_labels(self):
             self.lbl1 = QLabel("Path/to/MD_File", self)

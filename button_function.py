@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import QFileDialog
 from plot import CDF_plot, CDF_plot2, CDF_fisher, ks_plot
-from NNmanager import NNimport
+from NNmanager import NNManagerDialog
 
 
 def select_md_file(self):
@@ -76,6 +76,6 @@ def compute_ks_test(self):
 # Neural Network Manager
 # importing NN model :
 def nn_import_button(self):
-    pass
-    # fig  = ks_plot(self.data,self.choice1.currentText(), self.choice3.currentText(), self.choice2.currentText(), 1 )
-    # self.show_plot(fig)
+    """Open the Neural Network Manager Dialog."""
+    nn_manager_dialog = NNManagerDialog(self.nn_manager)
+    nn_manager_dialog.exec_()

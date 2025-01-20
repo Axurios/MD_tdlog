@@ -1,3 +1,5 @@
+# file to experiment and code here the scientific aspect, not used directly in the project, prototypage
+
 import pickle
 import numpy as np
 import os
