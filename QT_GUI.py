@@ -7,7 +7,8 @@ from PyQt5.QtWidgets import (
     QLabel,
     QPushButton,
     QVBoxLayout,
-    QMessageBox
+    QMessageBox,
+    QMenu
 )
 from PyQt5.QtCore import (
     QRect,
@@ -20,8 +21,12 @@ from button_function import (
     select_md_file,
     select_theta_file,
     compute_and_plot_distribution,
-    compute_theta_of_fischer
+    compute_theta_of_fischer,
+    select_loss
 )
+
+from neural_network import MSELoss, MAELoss, CrossEntropyLoss, HingeLoss
+
 import matplotlib.figure
 from matplotlib.backends.backend_qt5agg import (
      FigureCanvasQTAgg as FigureCanvas)
@@ -57,6 +62,7 @@ class Window(QMainWindow):
             super().__init__()
             self.create_ui()
             self.data = DataHolder()
+            self.loss = None
         
         def create_ui(self):
             self.setWindowTitle("main page")
@@ -99,7 +105,16 @@ class Window(QMainWindow):
                                         window_height-box1_height*2-y_box1*2,
                                         box1_width, box1_height))
             self.btn4.clicked.connect(lambda: compute_theta_of_fischer(self))
+
+            # loss landscape 
+            self.btn5 = QPushButton("Select Loss", self)
+            self.btn5.setGeometry(QRect(window_width-box1_width-x_box1,
+                                        window_height//2,
+                                        box1_width, box1_height))
+            self.btn5.setMenu(self.loss_options())
             
+            
+
         def create_labels(self):
             self.lbl1 = QLabel("Path/to/MD_File", self)
             self.lbl1.setGeometry(QRect(x_line2, y_box1,
@@ -135,6 +150,18 @@ class Window(QMainWindow):
             self.choice3 = QComboBox(self)
             self.choice3.setGeometry(QRect(x_line2, y_box1*4 + box1_height*3,
                                            int(box1_width*1.5), box1_height))
+        
+        def loss_options(self):
+            """Create a drop-down menu for the button select loss."""
+            menu = QMenu()
+
+            # Add menu options
+            menu.addAction("MSE", lambda: select_loss(self, MSELoss))
+            menu.addAction("MAE", lambda: select_loss(self, MAELoss))
+            menu.addAction("Hinge", lambda: select_loss(self, HingeLoss))
+            menu.addAction("Cross Entropy", lambda: select_loss(self, CrossEntropyLoss))
+
+            return menu
             
         def show_plot(self, fig):
             plot_window = PlotWindow(fig)

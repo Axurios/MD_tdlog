@@ -1,5 +1,6 @@
 from PyQt5.QtWidgets import QFileDialog
 from plot import CDF_plot2, CDF_fisher
+from neural_network import MSELoss, MAELoss, CrossEntropyLoss, HingeLoss
 
 
 def select_md_file(self):
@@ -93,3 +94,7 @@ def compute_theta_of_fischer(self):
             self.show_error("No Theta file")
     except Exception as e:
         self.show_error(f"{e}, Probable error of input strings or Data errors.")
+    
+def select_loss(self, loss_type):
+    self.loss = loss_type()
+    print("loss selected")

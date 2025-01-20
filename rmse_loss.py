@@ -40,9 +40,9 @@ plt.show()
 
 # pour améliorer la performance on pourrait enregistrer les tests -> en tout cas il faut justifier pourquoi des fois c'est trop long ou pas
 
-model = neural_network.DeepMLP(hidden_features=[64,64,32,16])
-loss=neural_network.MSE()
-neural_network.train(model, loss, train_data, train_labels, val_data,val_labels, epochs=3)
+model = neural_network.SimpleMLP()
+loss=neural_network.CrossEntropyLoss()
+neural_network.train(model, loss, train_data, train_labels, val_data,val_labels, epochs=1)
 y,W1, W2= model.forward_grid(val_data,2,100)
 RMSE = loss.forward_grid(y,val_labels)
 
