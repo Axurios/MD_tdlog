@@ -1,6 +1,12 @@
 from PyQt5.QtWidgets import QFileDialog
 from plot import CDF_plot2, CDF_fisher
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_qt5agg import (
+     FigureCanvasQTAgg as FigureCanvas)
+from neural_network import MSELoss, MAELoss, CrossEntropyLoss, HingeLoss, SimpleMLP, DoubleMLP, train
 from scipy.constants import Boltzmann
+
 
 def select_md_file(self):
     """ Function used for load MD_file in UI"""
@@ -99,3 +105,31 @@ def compute_theta_of_fischer(self):
             self.show_error("No Theta file")
     except Exception as e:
         self.show_error(f"{e}, Probable error of input strings or Data errors.")
+
+
+def select_loss(self, loss_type):
+    self.loss = loss_type()
+    print("loss selected")
+
+def select_nn(self, nn_type):
+    self.nn = nn_type()
+    print("nn selected")
+
+def plot_rmse(self):
+
+    train(self.nn, self.loss, self.train_data, self.train_labels, self.val_data,self.val_labels, epochs=1,show=False)
+    y,W1, W2= self.nn.forward_grid(self.val_data,2,100)
+    RMSE = self.loss.forward_grid(y,self.val_labels)
+
+    # Create a 3D plot
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    ax.plot_surface(W1, W2, RMSE, cmap='viridis', alpha=0.8)
+    ax.set_xlabel('W1')
+    ax.set_ylabel('W2')
+    ax.set_zlabel('loss')
+    ax.set_title('loss en 3D')
+    self.plot = fig
+    self.canvas.figure = fig
+    self.canvas.draw()
+    print("calcul terminé")

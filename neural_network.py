@@ -23,17 +23,21 @@ class Module(object):
         raise NotImplementedError
 
 
-class MSE(Module):
+class MSELoss(Module):
     """
     Cette implémentation de la perte quadratique moyenne suppose que les données sont fournies sous forme
     d'un tableau 2D de taille (batch_size, num_classes) et que les étiquettes sont fournies sous forme
     d'un vecteur de taille (batch_size).
     """
     def __init__(self, num_classes=10):
-        super(MSE, self).__init__()
+        super(MSELoss, self).__init__()
         self.num_classes = num_classes
 
     def make_target(self, x, labels):
+        """
+        One-hot encoding : crée une matrice target où chaque ligne correspond à un élément, et target[i,j] vaut 1 si la vraie classe
+        de l'élément i est j et 0 sinon
+        """
         target = np.zeros([x.shape[0], self.num_classes])
         for i in range(x.shape[0]):
             target[i, labels[i]] = 1
@@ -46,13 +50,12 @@ class MSE(Module):
         return np.mean(self.output)
     
     def forward_grid(self, x, labels):
-        rows, cols = x.shape
+        rows, cols = x.shape[:2]
         result = np.empty((rows, cols), dtype=object)
 
         for i in range(rows):
             for j in range(cols):
                 result[i,j] = self.forward(x[i,j],labels)
-        
         return result
 
     def backward(self, x, labels):
@@ -66,6 +69,10 @@ class MAELoss(Module):
         self.num_classes = num_classes
 
     def make_target(self, x, labels):
+        """
+        One-hot encoding : crée une matrice target où chaque ligne correspond à un élément, et target[i,j] vaut 1 si la vraie classe
+        de l'élément i est j et 0 sinon
+        """
         target = np.zeros([x.shape[0], self.num_classes])
         for i in range(x.shape[0]):
             target[i, labels[i]] = 1
@@ -77,7 +84,7 @@ class MAELoss(Module):
         return np.mean(self.output)
 
     def forward_grid(self, x, labels):
-        rows, cols = x.shape
+        rows, cols = x.shape[:2]
         result = np.empty((rows, cols), dtype=object)
 
         for i in range(rows):
@@ -92,43 +99,84 @@ class MAELoss(Module):
         return self.gradInput
 
 
-class HuberLoss(Module):
-    def __init__(self, delta=1.0, num_classes=10):
-        super(HuberLoss, self).__init__()
-        self.delta = delta
+class CrossEntropyLoss(Module):
+    """
+    Implémentation de la perte d'entropie croisée pour les tâches de classification.
+    Suppositions :
+    - `x` est un tableau 2D de taille (batch_size, num_classes), représentant les logits prévus.
+    - `labels` est un tableau 1D de taille (batch_size), contenant les indices des classes réelles.
+    """
+    def __init__(self, num_classes=10):
+        super(CrossEntropyLoss, self).__init__()
         self.num_classes = num_classes
 
     def make_target(self, x, labels):
+        """
+        One-hot encoding : crée une matrice target où chaque ligne correspond à un élément.
+        Pour l'élément `i`, `target[i, j] = 1` si la classe réelle est `j`, sinon 0.
+        """
         target = np.zeros([x.shape[0], self.num_classes])
         for i in range(x.shape[0]):
             target[i, labels[i]] = 1
         return target
 
+    def softmax(self, x):
+        """
+        Applique la fonction softmax pour transformer les logits en probabilités.
+        Args:
+            x: np.ndarray, taille (batch_size, num_classes)
+        Returns:
+            np.ndarray, taille (batch_size, num_classes), probabilités normalisées.
+        """
+        exp_x = np.exp(x - np.max(x, axis=1, keepdims=True))  # Stabilité numérique
+        return exp_x / np.sum(exp_x, axis=1, keepdims=True)
+
     def forward(self, x, labels):
-        target = self.make_target(x, labels)
-        diff = np.abs(target - x)
-        
-        quadratic = np.minimum(diff, self.delta)
-        linear = diff - quadratic
-        
-        self.output = 0.5 * quadratic**2 + self.delta * linear
-        return np.mean(np.sum(self.output, axis=1))
-    
+        """
+        Calcule la perte d'entropie croisée.
+        Args:
+            x: Logits prédits, taille (batch_size, num_classes)
+            labels: Indices des classes réelles, taille (batch_size)
+        Returns:
+            float : Moyenne de la perte sur tout le batch.
+        """
+        probs = self.softmax(x)  # Transformation des logits en probabilités
+        batch_size = x.shape[0]
+        correct_class_probs = probs[np.arange(batch_size), labels]  # Probabilités des classes correctes
+        self.output = -np.log(correct_class_probs)  # Logarithme négatif des probabilités
+        return np.mean(self.output)  # Moyenne sur tout le batch
+
     def forward_grid(self, x, labels):
-        rows, cols = x.shape
+        """
+        Calcule la perte d'entropie croisée sur une grille de prédictions.
+        Args:
+            x: Tableau 3D, taille (rows, cols, num_classes)
+            labels: Indices des classes réelles, taille (batch_size)
+        Returns:
+            Grille des pertes scalaires pour chaque élément.
+        """
+        rows, cols = x.shape[:2]
         result = np.empty((rows, cols), dtype=object)
 
         for i in range(rows):
             for j in range(cols):
-                result[i,j] = self.forward(x[i,j],labels)
+                result[i, j] = self.forward(x[i, j], labels)
         
         return result
 
     def backward(self, x, labels):
-        target = self.make_target(x, labels)
-        diff = x - target
-        
-        self.gradInput = np.where(np.abs(diff) <= self.delta, diff, self.delta * np.sign(diff)) / x.shape[0]
+        """
+        Calcule le gradient de la perte par rapport aux logits d'entrée.
+        Args:
+            x: Logits prédits, taille (batch_size, num_classes)
+            labels: Indices des classes réelles, taille (batch_size)
+        Returns:
+            np.ndarray : Gradient, taille (batch_size, num_classes)
+        """
+        probs = self.softmax(x)  # Transformation des logits en probabilités
+        batch_size = x.shape[0]
+        target = self.make_target(x, labels)  # Encodage one-hot des étiquettes
+        self.gradInput = (probs - target) / batch_size  # Calcul du gradient
         return self.gradInput
 
 
@@ -138,6 +186,10 @@ class HingeLoss(Module):
         self.num_classes = num_classes
 
     def make_target(self, x, labels):
+        """
+        One-hot encoding : crée une matrice target où chaque ligne correspond à un élément, et target[i,j] vaut 1 si la vraie classe
+        de l'élément i est j et -1 sinon
+        """
         target = -np.ones([x.shape[0], self.num_classes])
         for i in range(x.shape[0]):
             target[i, labels[i]] = 1
@@ -149,7 +201,7 @@ class HingeLoss(Module):
         return np.mean(np.sum(self.output, axis=1))
     
     def forward_grid(self, x, labels):
-        rows, cols = x.shape
+        rows, cols = x.shape[:2]
         result = np.empty((rows, cols), dtype=object)
 
         for i in range(rows):
@@ -159,10 +211,14 @@ class HingeLoss(Module):
         return result
 
     def backward(self, x, labels):
+        if self.output is None:
+            raise ValueError("Forward method must be called before backward to initialize self.output.")
+        
         target = self.make_target(x, labels)
         grad = -target * (self.output > 0).astype(float)
-        self.gradInput = grad / x.shape[0]
-        return self.gradInput
+        return grad / x.shape[0]
+
+
 
 class Linear(Module):
     """
@@ -509,7 +565,7 @@ def train_epoch(model, loss, data, labels, val_data, val_labels, lr, batch_size)
 
   return train_losses, val_losses, val_accuracies
 
-def train(model, loss, train_data, train_labels, val_data, val_labels, lr=1e-2, batch_size=16, epochs=1):
+def train(model, loss, train_data, train_labels, val_data, val_labels, lr=1e-2, batch_size=16, epochs=1, show=True):
 
     # On stocke les valeurs dans les listes suivantes toutes les 10 itérations
     all_train_losses = []
@@ -525,11 +581,12 @@ def train(model, loss, train_data, train_labels, val_data, val_labels, lr=1e-2, 
 
     iterations = range(0, len(all_train_losses) * 10, 10) 
 
-    plt.plot(iterations, all_train_losses, color='blue', label='Training Loss')
-    plt.plot(iterations, all_val_losses, color='red', label='Validation Loss')
-    plt.plot(iterations, all_val_accuracies, color='green', label='Validation Accuracy')
-    plt.xlabel('Iterations')
-    plt.ylabel('Loss / Accuracy')
-    plt.title('Training and Validation Performance')
-    plt.legend()
-    plt.show()
+    if show :
+        plt.plot(iterations, all_train_losses, color='blue', label='Training Loss')
+        plt.plot(iterations, all_val_losses, color='red', label='Validation Loss')
+        plt.plot(iterations, all_val_accuracies, color='green', label='Validation Accuracy')
+        plt.xlabel('Iterations')
+        plt.ylabel('Loss / Accuracy')
+        plt.title('Training and Validation Performance')
+        plt.legend()
+        plt.show()
