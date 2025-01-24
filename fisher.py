@@ -21,7 +21,7 @@ def fisher_theta(Data : DataHolder, gradstr : str, forcestr: str, beta : float):
     #computing theta based on Fisher
     for G in G_list :
         GGT.append(np.dot(G.transpose(),G))
-    c_list = np.array((beta**2)*[np.dot(G_list[i].transpose(),F_list[i]) for i in range(len(G_list))])
+    c_list = np.array([(beta**2)*np.dot(G_list[i].transpose(),F_list[i]) for i in range(len(G_list))])
     stacked_c = np.stack(c_list)
     c = np.mean(stacked_c, axis = 0)
     stacked_arrays = np.stack(GGT)
