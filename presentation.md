@@ -49,20 +49,20 @@ Sommaire :
 * V - Perspectives d'extension
 
 ---
-## I - Objectifs initiaux 
+### I - Objectifs initiaux 
 * séquence d'éléments
 * accès par indice en O(1)
 
-appartient cursus classique 
-récursivité, intéressant d'un point de vue théorique, en pratique réutilise les algo pré-implémentés (i.e entraînement)
+<!-- appartient cursus classique 
+récursivité, intéressant d'un point de vue théorique, en pratique réutilise les algo pré-implémentés (i.e entraînement) -->
 
 ---
 
-## Selection sort : $O(n^{2})$
+### II - Choix techniques
 passe en revue tous les éléments, choisis le plus petit, le mets en premier
 recommence sur la liste privée du 1er élément. etc
 
---- 
+<!-- --- 
 * correction
 * aboutit en temps fini
 -> invariant(s)
@@ -75,7 +75,7 @@ code plus souvent lu qu'écrit
 swap(list,indice_a, indice_b) permute les deux indices dans la liste
 
 
-<!-- _paginate: skip -->
+_paginate: skip -->
 ---
 
 
@@ -99,7 +99,7 @@ Boucle interne : en *n - i* itérations
 -> O($n^{2}$)
 
 ---
-## Insertion sort : $O(n^{2})$
+### III - Réalisation(s)
 on considère **sorted = [seq[0]] trié**
 ajoute seq[1] à la bonne place dans "sorted" (inserting)
 
@@ -115,7 +115,7 @@ def insertion_sort(seq):
 ```
 
 ---
-## Bubble sort : $O(n^{2})$
+### IV - Difficultés rencontrées
 * parcourir tous les éléments de la liste
 * permuter indices i et i+1 si pas ordonnés
 * répéter tant que "permutation a été nécessaire"
@@ -133,7 +133,7 @@ def bubble_sort(seq):
 ```
 
 ---
-## Merge sort : $O(n \, log(n))$
+### V - Perspectives d'extension
 * séparer en deux parties
 * trier chaque partie indépendamment -> récursivité
 * fusionner les deux parties en gardant ordre
@@ -158,8 +158,8 @@ def merge(seq1, seq2):
 ```
 représentation en arbre (largeur n, profondeur log(n))
 
----
-## Quick sort : $O(n \, log(n))$
+<!-- --- -->
+<!-- ## Quick sort : $O(n \, log(n))$
 * choix d'un pivot
 * partitionner en deux parties selon le pivot
 * trier chaque partie
@@ -246,12 +246,8 @@ in this class, we're going to use "assert"
 def bucket_sort(seq,n):
     if len(seq) <= 1 :
         return seq
-    # besoin rajouter 0 significatifs 
+    # besoin rajouter 0 significatifs  -->
 
-
-
-```
-in this class, we're going to use "assert"
 
 ---
 en python : list = tableau dynamique (taille variable), d'habitude tableau statique 
