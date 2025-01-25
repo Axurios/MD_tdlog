@@ -9,7 +9,7 @@ from PyQt5.QtWidgets import QApplication
 import numpy as np
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-from dataHolder import DataHolder
+from src.dataHolder import DataHolder
 
 
 # Create a QApplication instance for testing GUI

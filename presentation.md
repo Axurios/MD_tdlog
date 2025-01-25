@@ -44,11 +44,11 @@ Kenji Chikhaoui, Théodora Gospodaru et A.Dussolle.
 ---
 
 #### Sommaire : 
-* I - Objectifs initiaux 
-* II - Choix techniques
+* I -   Objectifs initiaux 
+* II -  Choix techniques
 * III - Réalisation(s)
-* IV - Difficultés rencontrées
-* V - Perspectives d'extension
+* IV -  Difficultés rencontrées
+* V -   Perspectives d'extension
 
 ---
 <style scoped>
@@ -78,23 +78,13 @@ D'abord restreint aux modèles linéaires, puis adaptation aux réseaux de neuro
 ---
 
 ### II - Choix techniques
-passe en revue tous les éléments, choisis le plus petit, le mets en premier
-recommence sur la liste privée du 1er élément. etc
-
+* python Qt plutôt que Web interface, test tkinter, problème interaction graph long terme.
+* séparation UI, data, processing etc (check architecture name)
+* Object oriented, dataholder etc
+* python package for source code (might separate ui, etc in further package ?)
+* plt plot into qt ui
 <!-- --- 
-* correction
-* aboutit en temps fini
--> invariant(s)
-
-laisser commentaire  (# [0,...,i] trié)
-
-! lisibilité du code
-code plus souvent lu qu'écrit
-
-swap(list,indice_a, indice_b) permute les deux indices dans la liste
-
-
-_paginate: skip -->
+commentaire  -->
 ---
 
 

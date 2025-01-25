@@ -7,7 +7,7 @@ from ase import Atoms
 from unittest.mock import patch
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-from dataHolder import DataHolder
+from src.dataHolder import DataHolder
 
 
 ## Tests to see if loaded data are correctly held by DataHolder

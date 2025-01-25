@@ -54,15 +54,13 @@ app.quit()
 ################################
 
 
-# ####specs of buttons and boxes#####
-
+#####specs of buttons and boxes#####
 x_box1 = window_width//20
 box1_width = window_width//6
 box1_height = box1_width//4
 y_box1 = box1_height//2
 
 x_line2 = x_box1*2 + box1_width
-
 ####################################
 
 

@@ -4,7 +4,7 @@ from typing import Tuple
 from scipy.constants import Boltzmann
 from matplotlib.figure import Figure
 from .fisher import fisher_theta
-#from ase.calculators.lj import LennardJones
+
 
 def cdf(data: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
     """
@@ -29,7 +29,6 @@ def boltzmann_cdf(E, T, kb=Boltzmann):
 
 
 def CDF_plot2(Data : DataHolder, descstr : str):
-
     keys  = list(Data.md_data.keys())   #getting list of experiences
     fig = Figure()
     ax = fig.add_subplot()
@@ -40,8 +39,8 @@ def CDF_plot2(Data : DataHolder, descstr : str):
         ax.plot(sorted, cdf_data)   # plotting
     return fig
 
+
 def CDF_fisher(Data : DataHolder, descstr : str,  gradstr : str, forcestr : str, beta : float = 1):
-    
     keys  = list(Data.md_data.keys())   #getting list of experiences
     fig = Figure()
     ax = fig.add_subplot()
@@ -58,8 +57,6 @@ def CDF_fisher(Data : DataHolder, descstr : str,  gradstr : str, forcestr : str,
 
 
 
-
-# #   return len(selected_sample) / len(data_sample)
 def CDF_inverse(P, data):
   # Sort the sample to use for inverse CDF (quantile function)
     sorted_data = np.sort(data)
@@ -69,13 +66,6 @@ def CDF_inverse(P, data):
     # Return the value from the sorted sample at that index
     return sorted_data[int_list]
 
-
-# def CDF(t, data_sample):
-#     """
-#     Computes the empirical cumulative distribution function (CDF) at a given threshold t.
-#     """
-#     selected_sample = np.extract(data_sample <= t, data_sample)
-#     return len(selected_sample) / len(data_sample)
 
 
 def Q_KS(lambda_):
@@ -87,6 +77,7 @@ def Q_KS(lambda_):
 def CDF(t, data_sample):
   selected_sample = np.extract(data_sample <= t, data_sample)
   return len(selected_sample) / len(data_sample)
+
 
 def ks_plot(Data : DataHolder, descstr : str,  gradstr : str, forcestr : str, beta : float = 1):
     keys  = list(Data.md_data.keys())
@@ -140,8 +131,8 @@ def ks_plot(Data : DataHolder, descstr : str,  gradstr : str, forcestr : str, be
                 raise ValueError("One of the input CDF arrays is empty or too small.")
 #    return fig
 
-        data = np.dot(fishertheta,np.array(Data.md_data[k]['atoms'][-1].get_array(descstr)).transpose())    #computing energies
-        sorted,cdf_data = cdf(data) # making it a distribution
-        ax.plot(sorted, cdf_data)   # plotting
+            data = np.dot(fishertheta,np.array(Data.md_data[k]['atoms'][-1].get_array(descstr)).transpose())    #computing energies
+            sorted,cdf_data = cdf(data) # making it a distribution
+            ax.plot(sorted, cdf_data)   # plotting
     return fig
 
