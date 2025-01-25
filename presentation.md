@@ -43,7 +43,7 @@ Kenji Chikhaoui, Théodora Gospodaru et A.Dussolle.
 
 ---
 
-Sommaire :
+#### Sommaire : 
 * I - Objectifs initiaux 
 * II - Choix techniques
 * III - Réalisation(s)
@@ -51,12 +51,29 @@ Sommaire :
 * V - Perspectives d'extension
 
 ---
-### I - Objectifs initiaux 
-* séquence d'éléments
-* accès par indice en O(1)
+<style scoped>
+section {
+    font-size: 25px;
+}
+</style> 
+<!-- si besoin d'écrire beaucoup -->
+### I - Objectifs initiaux
+*Contexte* : Comment stabiliser les simulations moléculaires faites par GNN ?
+* mauvaise corrélation RMSE - time-stability
+* meilleure stabilité "by smoothing the loss landscape" 
+ \
+\
+semble arbitraire :  
+idéalement Loss qui rapproche les gradients : Divergence de Fisher sur Boltzmann. 
 
-<!-- appartient cursus classique 
-récursivité, intéressant d'un point de vue théorique, en pratique réutilise les algo pré-implémentés (i.e entraînement) -->
+$F(p,  p_{\theta}) = \frac{1}{2} \int p(\mathbf{x}) \left\| \nabla_{\mathbf{x}} \log p(\mathbf{x}) - \nabla_{\mathbf{x}} \log p_{\theta}(\mathbf{x}) \right\|^2 d\mathbf{x}$
+
+---
+D'abord restreint aux modèles linéaires, puis adaptation aux réseaux de neurones.
+* Calculer modèle optimisant Fisher.
+* Comparer les résultats RMSE/Fisher.  
+
+![w:487 h:291](images/mse_energy.png) ![w:487 h:291](images/fisher_energy.png)
 
 ---
 
@@ -184,7 +201,12 @@ predicting the future by making it, on s'est restraint sur les éléments d'un e
 ---
 $\mathbb{P}_{\pi \,,\, p}(Y=y\,|\,X=x) = \frac{\pi(y) \, p(x|y)}{\sum_{y' \in Y} \pi(y') \, p(x|y')}$
 
-
+$$
+\begin{aligned}
+x & xx \\
+y & yy 
+\end{aligned}
+$$
 <https://www.markdownguide.org>
 <fake@example.com>
 
