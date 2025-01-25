@@ -35,19 +35,21 @@ blockquote:after{
 </style>
 
 <!--- Welcome to our ReadMe, right-click on this md-file and "Open Preview" to this our presentation of this project --->
-# Constrained score-matching fine-tuning on a Boltzmannian dataset.
-TDLog - test
+# Boltzmanian score matching fine-tuning
+### TDLog & projet de département
+Kenji Chikhaoui, Théodora Gospodaru et A.Dussolle.
 
 ---
 
-nothing to send today :)
-* algo quadratique
-* algo n log n
-* borne theorique
-* algo lineaire
+Sommaire :
+* I - Objectifs initiaux 
+* II - Choix techniques
+* III - Réalisation(s)
+* IV - Difficultés rencontrées
+* V - Perspectives d'extension
 
 ---
-problème facile à définir, résultat intuitif ;
+## I - Objectifs initiaux 
 * séquence d'éléments
 * accès par indice en O(1)
 
@@ -293,3 +295,6 @@ add in pagination style at beginning to make it a fraction
 | SQL Hat           |   True   | 23.99 |
 | Codecademy Tee    |  False   | 19.99 |
 | Codecademy Hoodie |  False   | 42.99 |
+
+---
+![](images/cea.png)
