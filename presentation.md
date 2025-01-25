@@ -35,9 +35,11 @@ blockquote:after{
 </style>
 
 <!--- Welcome to our ReadMe, right-click on this md-file and "Open Preview" to this our presentation of this project --->
-# Boltzmanian score matching fine-tuning
-### TDLog & projet de département
-Kenji Chikhaoui, Théodora Gospodaru et A.Dussolle.
+TDLOG & projet de département  
+# Boltzmanian score matching fine-tuning  
+Kenji Chikhaoui, Théodora Gospodaru et A.Dussolle.  
+<!-- 27/01/2025 -->
+![w:600 h:207](images/enpc.png)
 
 ---
 
@@ -158,95 +160,8 @@ def merge(seq1, seq2):
 ```
 représentation en arbre (largeur n, profondeur log(n))
 
-<!-- --- -->
-<!-- ## Quick sort : $O(n \, log(n))$
-* choix d'un pivot
-* partitionner en deux parties selon le pivot
-* trier chaque partie
-* concaténer les parties
-```python
-def quick_sort(seq):
-    if len(seq) < 2:
-        return seq
-    else :
-        pivot = seq[0]
-        left,right = partition(seq[1:], pivot)  
-        # compare au pivot, insère la liste correspondante
-        return quick_sort(left) + pivot + quick_sort(right)
-```
-
 ---
-## Algorithmes linéaires
-### Counting sort : $O(n)$
-* compter le nombre d'occurrences des éléments
-* parcours table d'occurrence et insère dans une liste
-```python
-def counting_sort(seq):
-    occurrences = [0]*256
-    for val in seq :
-        occurrences[val] += 1
-    i = 0 #pas fini !
-```
----
-#### Comment est-ce possible ?
-on s'est restraint sur les éléments d'un ensemble dénombrable
-
-problème d'applicabilité (mémoire)
-
----
-## Annotations de type
-```python
-value : int = 1
-#(bool,int,float,str,None,object)
-def function()
-    return seq
-
-
-x : list[float] = [1.1, 2.4]
-x : set[int] = {1,2,3}
-x : dict[int,str] = {1:'one'}
-x : tuple[int,str,float] = 1, 'one', 3.1
-x : Optional[bool] = None
-# optional permet d'avoir aussi None dans valeurs
-```
-None : *absence* de valeur.
-
----
-```python
-
-def function(seq : list[Optional[int]]) -> int:
-    res : int = 0
-    for item in seq :
-        if item is not None:
-            res += item
-    return res
-
-```
-Utilisée comme une forme de documentation
-utile pour les classes de données (struct en C++)
-
----
-```python
-import dataclasses
-@dataclasses.dataclass
-
-class AdataClass:
-    an_attribut : int
-    another : float
-
-an_instance = AdataClass(an_attribut=1, another=2.3)
-
-an_instance.an_attribut = 2 
-#changing the value.
-```
-in this class, we're going to use "assert"
-
----
-```python
-def bucket_sort(seq,n):
-    if len(seq) <= 1 :
-        return seq
-    # besoin rajouter 0 significatifs  -->
+### Annexe 
 
 
 ---
