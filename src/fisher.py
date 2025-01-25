@@ -1,4 +1,4 @@
-from dataHolder import DataHolder
+from .dataHolder import DataHolder
 import numpy as np
 
 def fisher_theta(Data : DataHolder, gradstr : str, forcestr: str, beta : float):

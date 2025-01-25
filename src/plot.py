@@ -1,9 +1,9 @@
-from dataHolder import DataHolder
+from .dataHolder import DataHolder
 import numpy as np
 from typing import Tuple
 from scipy.constants import Boltzmann
 from matplotlib.figure import Figure
-from fisher import fisher_theta
+from .fisher import fisher_theta
 #from ase.calculators.lj import LennardJones
 
 def cdf(data: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:

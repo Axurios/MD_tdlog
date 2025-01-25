@@ -3,9 +3,9 @@ from matplotlib.backends.backend_qt5agg import (
 from PyQt5.QtWidgets import QFileDialog
 import numpy as np
 import matplotlib.pyplot as plt
-from plot import CDF_plot2, CDF_fisher, ks_plot
-from NNmanager import NNManagerDialog
-from neural_network import MSELoss, MAELoss, CrossEntropyLoss, HingeLoss, SimpleMLP, DoubleMLP, train
+from .plot import CDF_plot2, CDF_fisher, ks_plot
+from .NNmanager import NNManagerDialog
+from .neural_network import MSELoss, MAELoss, CrossEntropyLoss, HingeLoss, SimpleMLP, DoubleMLP, train
 from scipy.constants import Boltzmann
 
 

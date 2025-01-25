@@ -1,10 +1,10 @@
-from helper import check_requirements
+from src.helper import check_requirements
 check_requirements() 
 
 from PyQt5.QtWidgets import QApplication
 
-from QT_GUI import Window
-from NNmanager import MessagePassingModel
+from src.QT_GUI import Window
+from src.NNmanager import MessagePassingModel
 
 
 

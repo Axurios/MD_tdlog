@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import neural_network 
+from .neural_network import neural_network 
 
 data = np.load("mini_mnist.npz")
 

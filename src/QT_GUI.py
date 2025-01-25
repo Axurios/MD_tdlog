@@ -1,5 +1,5 @@
-from dataHolder import DataHolder
-from NNmanager import NNManager
+from .dataHolder import DataHolder
+from .NNmanager import NNManager
 from PyQt5.QtWidgets import (
     QMainWindow,
     QApplication,
@@ -19,7 +19,7 @@ from PyQt5.QtGui import (
     QGuiApplication,
     QIcon,
 )
-from button_function import (
+from .button_function import (
     select_md_file,
     select_theta_file,
     compute_and_plot_distribution,
@@ -32,7 +32,7 @@ from button_function import (
     plot_rmse
 )
 
-from neural_network import MSELoss, MAELoss, CrossEntropyLoss, HingeLoss, SimpleMLP, DoubleMLP
+from .neural_network import MSELoss, MAELoss, CrossEntropyLoss, HingeLoss, SimpleMLP, DoubleMLP
 
 import numpy as np
 import matplotlib.figure
@@ -78,7 +78,7 @@ class Window(QMainWindow):
             self.setWindowTitle("main page")
             self.setGeometry(sw//4, sh//4, window_width, window_height)
             self.setFixedSize(window_width, window_height)
-            self.setWindowIcon(QIcon("cea.png"))
+            self.setWindowIcon(QIcon("images/cea.png"))
             self.initlayout()
             self.show()
 
@@ -233,7 +233,7 @@ class LossLandscapeWindow(QMainWindow):
             self.plot_fig()
     
     def load_data(self):
-        data = np.load("mini_mnist.npz")
+        data = np.load("Data/mini_mnist.npz")
 
         self.train_data = data["train_data"]
         self.train_labels = data["train_labels"]
