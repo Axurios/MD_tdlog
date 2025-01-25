@@ -3,7 +3,6 @@ from tkinter import filedialog
 import subprocess
 import sys
 
-
 def check_requirements(requirements_file="requirements.txt"):
     try:
         with open(requirements_file) as f:

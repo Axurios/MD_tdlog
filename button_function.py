@@ -1,14 +1,23 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_qt5agg import (
+     FigureCanvasQTAgg as FigureCanvas)
 from PyQt5.QtWidgets import QFileDialog
+from scipy.constants import Boltzmann
 from plot import CDF_plot, CDF_plot2, CDF_fisher, ks_plot
 from NNmanager import NNManagerDialog
+from neural_network import MSELoss, MAELoss, CrossEntropyLoss, HingeLoss, SimpleMLP, DoubleMLP, train
+
 
 
 def select_md_file(self):
     """ Function used for load MD_file in UI"""
     try:
+        #open file
         file_name, _ = QFileDialog.getOpenFileName(self, "Select MD Data File",
                                                    "", "All Files (*)")
         if file_name:
+            # getting strings and file path
             choices = self.data.load_md_data(file_name)
             self.lbl1.setText(f"MD File Path : {file_name}")
 
@@ -54,14 +63,18 @@ def select_theta_file(self):
 
 # Plotting the different scientific computations and statistical test
 def compute_and_plot_distribution(self):
-    """ploting distribution of each simulation ending (of each key)"""
-    if (self.data.md_data_loaded and self.data.theta_loaded):
-        fig = CDF_plot2(self.data,self.choice1.currentText())
-        self.show_plot(fig)
-    elif not self.data.md_data_loaded:
-        self.show_error("No MD_Data file")
-    else:
-        self.show_error("No Theta file")
+    try :
+        #ploting distribution of each simulation ending (of each key) with the energy distribution of theta_file
+        if (self.data.md_data_loaded and self.data.theta_loaded):
+            fig = CDF_plot2(self.data,self.choice1.currentText())
+            self.show_plot(fig)
+        elif not self.data.md_data_loaded:
+            self.show_error("No MD_Data file")
+        else:
+            self.show_error("No Theta file")
+            
+    except Exception as e:
+        self.show_error(f"{e}, Probable error of input strings or Data errors.")
 
 def compute_theta_of_fischer(self):
     fig  = CDF_fisher(self.data,self.choice1.currentText(), self.choice3.currentText(), self.choice2.currentText(), 1 )
@@ -79,3 +92,62 @@ def nn_import_button(self):
     """Open the Neural Network Manager Dialog."""
     nn_manager_dialog = NNManagerDialog(self.nn_manager)
     nn_manager_dialog.exec_()
+    try : 
+        #verify if strings are chosen correctly
+
+        descriptorstring = self.choice1.currentText()
+        gradientstring = self.choice3.currentText()
+        forcestring  = self.choice2.currentText()
+
+        text = self.input1.text()
+        temperature = int(text) if text else 300
+
+        if descriptorstring == gradientstring :
+            self.show_error("2 Same parameters. Verify the parameters")
+        elif descriptorstring == forcestring :
+            self.show_error("2 Same parameters. Verify the parameters")
+        elif gradientstring ==  forcestring :
+            self.show_error("2 Same parameters. Verify the parameters")
+        elif temperature <= 0 :
+            self.show_error("Temperature must be positive")
+
+        #ploting energy distribution with parameters computed based on fisher
+
+        elif (self.data.md_data_loaded and self.data.theta_loaded):
+            to_beta = 1/(Boltzmann*temperature)
+            fig  = CDF_fisher(self.data, descriptorstring, gradientstring, forcestring, beta = to_beta)    
+            self.show_plot(fig)
+        elif not self.data.md_data_loaded:
+            self.show_error("No MD_Data file")
+        else:
+            self.show_error("No Theta file")
+    except Exception as e:
+        self.show_error(f"{e}, Probable error of input strings or Data errors.")
+
+
+def select_loss(self, loss_type):
+    self.loss = loss_type()
+    print("loss selected")
+
+def select_nn(self, nn_type):
+    self.nn = nn_type()
+    print("nn selected")
+
+def plot_rmse(self):
+
+    train(self.nn, self.loss, self.train_data, self.train_labels, self.val_data,self.val_labels, epochs=1,show=False)
+    y,W1, W2= self.nn.forward_grid(self.val_data,2,100)
+    RMSE = self.loss.forward_grid(y,self.val_labels)
+
+    # Create a 3D plot
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    ax.plot_surface(W1, W2, RMSE, cmap='viridis', alpha=0.8)
+    ax.set_xlabel('W1')
+    ax.set_ylabel('W2')
+    ax.set_zlabel('loss')
+    ax.set_title('loss en 3D')
+    self.plot = fig
+    self.canvas.figure = fig
+    self.canvas.draw()
+    print("calcul terminé")

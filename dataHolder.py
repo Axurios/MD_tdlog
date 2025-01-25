@@ -41,7 +41,7 @@ class DataHolder:
         with open(file_path, "rb") as f:
             self.md_data = pickle.load(f)
 
-        check_md_format(self.md_data)
+        check_md_format(self.md_data)   #testing data
         # extract list of attributes in atoms
         first_item = list(self.md_data.keys())[0]
         dict = self.md_data[first_item]['atoms'][0].arrays
@@ -49,6 +49,7 @@ class DataHolder:
 
         # Extract energies
         self._extract_energies()
+        #updating boolean for data availability
         self.md_data_loaded = True
         return list_of_attributes
 
@@ -69,6 +70,7 @@ class DataHolder:
             raise ValueError("Invalid Theta data format")
         self.theta_loaded = True
 
+
     def _extract_energies(self):
         """Extract energies from MD data."""
         self.all_energies = [
@@ -85,6 +87,8 @@ class DataHolder:
         energies_ = (-1) * np.array(all_energies)  # * self.eV_to_J  # Uncomment to convert to Joules
         E_tot_ml_array = (-1) * np.array(self.E_tot_ml_list)  # * self.eV_to_J  # Uncomment to convert to Joules
         return energies_, E_tot_ml_array
+
+       
 
 
 def check_md_format(data):  

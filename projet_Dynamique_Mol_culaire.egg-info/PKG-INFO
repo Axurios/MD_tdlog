@@ -1,0 +1,11 @@
+Metadata-Version: 2.2
+Name: projet-Dynamique-Mol-culaire
+Version: 0.1.0
+Summary: Projet d'amélioration des modèles de dynamiques moléculaires par critère de stabilité de divergence de Fisher réduite à une distribution boltzmanienne des énérgies
+Home-page: https://github.com/Axurios/MD_tdlog
+Author: Kenji Chikhaoui, Alexandre Dussolle, Théodora Gospodaru
+Author-email: kenji.chikhaoui@gmail.com
+Dynamic: author
+Dynamic: author-email
+Dynamic: home-page
+Dynamic: summary

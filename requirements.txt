@@ -21,4 +21,7 @@ ase>=3.22.1
 # test
 pytest>=8.3.4
 
+#build
+build>=1.2.2
+
 
