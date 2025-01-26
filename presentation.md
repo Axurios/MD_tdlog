@@ -103,9 +103,6 @@ def selection_sort(seq):
         i += 1
 
 ```
-Boucle externe : en *n* itérations
-Boucle interne : en *n - i* itérations
--> O($n^{2}$)
 
 ---
 ### III - Réalisation(s)
