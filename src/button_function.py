@@ -9,6 +9,7 @@ from .neural_network import MSELoss, MAELoss, CrossEntropyLoss, HingeLoss, Simpl
 from scipy.constants import Boltzmann
 
 
+
 def select_md_file(self):
     """ Function used for load MD_file in UI"""
     try:
@@ -27,6 +28,7 @@ def select_md_file(self):
             self.choice1.addItems(choices)
             self.choice2.addItems(choices)
             self.choice3.addItems(choices)
+            self.update_buttons()
         else:
             self.show_error("Couldn't Load MD_Data")
 
@@ -49,6 +51,7 @@ def select_theta_file(self):
         if file_name:
             self.lbl2.setText(f"Theta File Path : {file_name}")
             self.data.load_theta(file_name)
+            self.update_buttons()
         else:
             self.show_error("Couldn't Load Theta")
 
@@ -124,6 +127,9 @@ def nn_import_button(self):
         self.show_error(f"{e}, Probable error of input strings or Data errors.")
 
 
+
+
+
 def select_loss(self, loss_type):
     self.loss = loss_type()
     print("loss selected")
@@ -133,7 +139,6 @@ def select_nn(self, nn_type):
     print("nn selected")
 
 def plot_rmse(self):
-
     train(self.nn, self.loss, self.train_data, self.train_labels, self.val_data,self.val_labels, epochs=1,show=False)
     y,W1, W2= self.nn.forward_grid(self.val_data,2,100)
     RMSE = self.loss.forward_grid(y,self.val_labels)

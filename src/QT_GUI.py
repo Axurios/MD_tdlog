@@ -71,6 +71,10 @@ class Window(QMainWindow):
             self.data = DataHolder()
             self.nn_manager = NNManager()
             self.loss_landscape_window = LossLandscapeWindow(self)
+            
+            # Initialize state to track file uploads
+            self.md_file_uploaded = False
+            self.theta_file_uploaded = False
                    
         def create_ui(self):
             self.setWindowTitle("main page")
@@ -106,14 +110,15 @@ class Window(QMainWindow):
                                         window_height-box1_height-y_box1,
                                         box1_width, box1_height))
             self.btn3.clicked.connect(lambda: compute_and_plot_distribution(self))
+            #self.btn3.setEnabled(False)
 
             # compute theta of Fisher
-
             self.btn4 = QPushButton("Compute Fisher", self)
             self.btn4.setGeometry(QRect(window_width-box1_width-x_box1,
                                         window_height-box1_height*2-y_box1*2,
                                         box1_width, box1_height))
             self.btn4.clicked.connect(lambda: compute_theta_of_fischer(self))
+            self.btn4.setEnabled(False)
 
 
             # Compute kolmogorov smirnov test
@@ -122,6 +127,7 @@ class Window(QMainWindow):
                                         window_height-box1_height*3-y_box1*3,
                                         box1_width, box1_height))
             self.btn5.clicked.connect(lambda: compute_ks_test(self))
+            self.btn5.setEnabled(False)
 
 
             # launch neural network manager
@@ -133,11 +139,11 @@ class Window(QMainWindow):
             # self.layout.addWidget(self.nn_button)  
 
             
-            self.btn5 = QPushButton("Loss Landscape", self)
-            self.btn5.setGeometry(QRect(x_box1,
+            self.btn6 = QPushButton("Loss Landscape", self)
+            self.btn6.setGeometry(QRect(x_box1,
                                         window_height-box1_height-y_box1,
                                         box1_width, box1_height))
-            self.btn5.clicked.connect(self.open_loss_landscape)
+            self.btn6.clicked.connect(self.open_loss_landscape)
             
 
         def create_labels(self):
@@ -180,6 +186,12 @@ class Window(QMainWindow):
             self.choice3.setGeometry(QRect(x_line2, y_box1*4 + box1_height*3,
                                            int(box1_width*1.5), box1_height))
         
+        def update_buttons(self):
+            """Enable or disable buttons based on file upload status."""
+            enable = self.data.md_data_loaded and self.data.theta_loaded
+            # self.btn3.setEnabled(enable)
+            self.btn4.setEnabled(enable)
+            self.btn5.setEnabled(enable)
 
         def open_loss_landscape(self):
             """Open the Loss Landscape window."""
@@ -205,6 +217,7 @@ class Window(QMainWindow):
             error_dialog.setInformativeText(ErrorMessage)
             error_dialog.setStandardButtons(QMessageBox.Ok)
             error_dialog.exec_()  # Display the error dialog
+
 
 
 class LossLandscapeWindow(QMainWindow):

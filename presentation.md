@@ -106,47 +106,80 @@ def selection_sort(seq):
 
 ---
 ### III - Réalisation(s)
-on considère **sorted = [seq[0]] trié**
-ajoute seq[1] à la bonne place dans "sorted" (inserting)
-
+Installateur automatique des packages nécessaires
 ```python
-def insertion_sort(seq):
-    i=1
-    while i < len(seq) :
-        j = i
-        while j>0 and seq[j-1] < seq[j] :
-            swap(seq, j, j-1)
-            j = j-1
-        i += 1
+def check_requirements(requirements_file="requirements.txt"):
+    try:
+        with open(requirements_file) as f:
+            required_packages = [
+                pkg.strip() for pkg in f if pkg.strip() and not pkg.startswith("#")
+            ]
+
+        missing_packages = []
+        for pkg in required_packages:
+            package_name = pkg.split(">=")[0]
+            try:
+                __import__(package_name)
+            except ImportError:
+                missing_packages.append(pkg)
+
+        if missing_packages:
+            ...
 ```
+
+---
+Interface graphique général
+![](images/main_interface.png)
+
+---
+```python
+class Window(QMainWindow):
+        def __init__(self):
+            super().__init__()
+            self.create_ui()
+            self.data = DataHolder()
+            self.nn_manager = NNManager()
+            self.loss_landscape_window = LossLandscapeWindow(self)
+                   
+        def create_ui(self):
+            ...
+            self.initlayout()
+            self.show()
+
+        def initlayout(self):
+            self.create_buttons()
+            self.create_labels()
+            self.create_choices()
+            self.create_imput_boxes()
+```
+
+---
+calcul fait (energy, fisher, ks test)
+
+---
+disabling button and error message
+
+---
+nn manager windows and itself
+
+---
+loss landscape visualizer (interface)
 
 ---
 ### IV - Difficultés rencontrées
-* parcourir tous les éléments de la liste
-* permuter indices i et i+1 si pas ordonnés
-* répéter tant que "permutation a été nécessaire"
-```python
-def bubble_sort(seq):
-    n = len(seq)
-    swapped = True
-    while swapped :
-        swapped = False
-        for i in range(1,n):
-            if seq[i-1] > seq[i]:
-                swap(seq, i-1, i)
-                swapped = True
-        n = n-1
-```
+* tests et interface graphique
+* partie scientifique
+* generalisation des données etc
+
 
 ---
 ### V - Perspectives d'extension
-* séparer en deux parties
-* trier chaque partie indépendamment -> récursivité
-* fusionner les deux parties en gardant ordre
+* Adapter Fisher aux GNN.
+* Tester la stabilité après fine-tuning selon Fisher.
+* Interface graphique pour construire son GNN.
 
-itère simultanément sur deux sous séquences puis place la valeur la plus faible dans le tableau et fais bouger son pointeur.
-
----
+ 
+<!--
 ```python
 def merge_sort(seq):
     if len(seq) < 2:
@@ -164,6 +197,7 @@ def merge(seq1, seq2):
 ```
 représentation en arbre (largeur n, profondeur log(n))
 
+<!-- 
 ---
 ### Annexe 
 
@@ -201,7 +235,7 @@ content: attr(data-marpit-pagination) '/' attr(data-marpit-pagination-total);
 add in pagination style at beginning to make it a fraction
 
 ---
-<!-- paginate: false -->
+ paginate: false 
 | Month    | Savings |
 | -------- | ------- |
 | January  | $250    |
@@ -217,4 +251,4 @@ add in pagination style at beginning to make it a fraction
 | Codecademy Hoodie |  False   | 42.99 |
 
 ---
-![](images/cea.png)
+![](images/cea.png) -->
