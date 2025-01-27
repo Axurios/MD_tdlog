@@ -85,33 +85,6 @@ D'abord restreint aux modèles linéaires, puis adaptation aux réseaux de neuro
 ---
 ![](images/dependencies_graph.png)
 
----
-<!-- * python Qt plutôt que Web interface, test tkinter, problème interaction graph long terme.
-* séparation UI, data, processing etc (check architecture name)
-* Object oriented, dataholder etc
-* python package for source code (might separate ui, etc in further package ?)
-* plt plot into qt ui -->
-<!-- --- 
-commentaire  -->
-<!-- ---
-
-
-
-```python
-def selection_sort(seq):
-    i=0
-    while i < len(seq) - 1 :
-        j_min = i
-        j = i+1
-        while j < len(seq):
-            if seq[j] < seq[j_min]:
-                j_min = j
-            j += 1
-        if j_min != 1 :
-            swap(seq, i,j_min)
-        i += 1
-
-``` -->
 
 ---
 ### III - Réalisation(s)
@@ -180,6 +153,8 @@ calcul des energies prédites par minimisation de MSE et de Fisher
 ![w:487 h:291](images/mse_energy.png) ![w:487 h:291](images/fisher_energy.png)
 
 ---
+
+Calcul de Theta de Fisher
 ```python
 def fisher_theta(Data : DataHolder, gradstr : str, forcestr: str, beta : float):
     keys  = list(Data.md_data.keys())   # getting each experience
@@ -199,10 +174,12 @@ def fisher_theta(Data : DataHolder, gradstr : str, forcestr: str, beta : float):
 ```
 
 ---
-Message
+Message d'erreurs :
+![w:560 h:282](images/error1.png) ![w:560 h:282](images/error2.png)
 
 ---
-Neural Network manager (graphical interface and nn-holder separated)
+Neural Network manager  
+(graphical interface and nn-holder separated)
 ![](images/nnmanager.png)
 
 ---
@@ -215,6 +192,7 @@ Neural Network manager (graphical interface and nn-holder separated)
 ### IV - Difficultés rencontrées
 * partie scientifique
 * généralisation des données
+* cf. slides suivantes
 
 ---
 #### tests et interface graphique
