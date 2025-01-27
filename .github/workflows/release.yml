@@ -2,28 +2,56 @@ name: Create Release
 
 on:
   push:
-    tags:
-      - 'v*' # Matches tag patterns like v1.0, v2.3.4, etc.
+    branches:
+      - kenfromalex
 
 jobs:
-  build:
-    name: Create Release
+  check-and-release:
+    name: Check Version and Create Release
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout code
+    - name: Checkout Code
       uses: actions/checkout@v3
 
+    - name: Set Up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.11
+
+    - name: Extract Version from setup.py
+      id: extract_version
+      run: |
+        # Extract the version from setup.py
+        VERSION=$(python -c "import re; f = open('setup.py').read(); print(re.search(r'version=[\"\\']([^\"\\']+)[\"\\']', f).group(1))")
+        echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+    - name: Fetch Existing Tags
+      id: check_tag
+      run: |
+        # Fetch all tags
+        git fetch --tags
+        # Check if the version already exists as a tag
+        if git tag --list | grep -q "^${VERSION}$"; then
+          echo "Version $VERSION already exists as a tag. Skipping release."
+          echo "SKIP_RELEASE=true" >> $GITHUB_ENV
+        else
+          echo "Version $VERSION does not exist. Proceeding with release."
+          echo "SKIP_RELEASE=false" >> $GITHUB_ENV
+
+    - name: Skip Release if Version Exists
+      if: env.SKIP_RELEASE == 'true'
+      run: echo "Skipping release because the version already exists."
+
     - name: Create Release
-      id: create_release
+      if: env.SKIP_RELEASE == 'false'
       uses: actions/create-release@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: ${{ github.ref_name }}
-        release_name: Release ${{ github.ref_name }}
+        tag_name: ${{ env.VERSION }}
+        release_name: Release ${{ env.VERSION }}
         body: |
-          Changes in this Release
-          - First Change
-          - Second Change
+          Changes in this Release:
+          - Automatically created by GitHub Actions.
         draft: false
         prerelease: false
