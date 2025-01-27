@@ -83,6 +83,9 @@ D'abord restreint aux modèles linéaires, puis adaptation aux réseaux de neuro
 * Utilisation de matplotlib : adapté pour les courbes et les landscapes, multiples options de personnalisation
 
 ---
+![](images/dependencies_graph.png)
+
+---
 <!-- * python Qt plutôt que Web interface, test tkinter, problème interaction graph long terme.
 * séparation UI, data, processing etc (check architecture name)
 * Object oriented, dataholder etc
