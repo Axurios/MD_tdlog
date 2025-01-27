@@ -1,0 +1,73 @@
+name: Create Release
+
+on:
+  push:
+    branches:
+      - main # Only trigger on pushes to the main branch
+
+permissions:
+  contents: write  # Allow the workflow to create releases
+  id-token: write  # Allow the workflow to use id-token
+
+jobs:
+  check-and-release:
+    name: Check Version and Create Release
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v3
+
+    - name: Set Up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.11
+
+    - name: Extract Version from setup.py
+      id: extract_version
+      run: |
+        # Navigate to the directory containing setup.py (adjust path as necessary)
+        # Extract the version from setup.py
+        
+        VERSION=$(python -c "
+        import re
+        f = open('setup.py').read()
+        match = re.search(r'version\s*=\s*[\"\\']([^\"\\']+)[\"\\']', f)
+        if match:
+            print(match.group(1))  # Print only the version number
+        else:
+            print('Not found')  # In case no version is found
+        ")
+
+        echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+    - name: Fetch Existing Tags
+      id: check_tag
+      run: |
+        # Fetch all tags
+        git fetch --tags
+        # Check if the version already exists as a tag
+        if git tag --list | grep -q "^${VERSION}$"; then
+          echo "Version $VERSION already exists as a tag. Skipping release."
+          echo "SKIP_RELEASE=true" >> $GITHUB_ENV
+        else
+          echo "Version $VERSION does not exist. Proceeding with release."
+          echo "SKIP_RELEASE=false" >> $GITHUB_ENV
+        fi
+
+    - name: Skip Release if Version Exists
+      if: env.SKIP_RELEASE == 'true'
+      run: echo "Skipping release because the version already exists."
+
+    - name: Create Release
+      if: env.SKIP_RELEASE == 'false'
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ env.VERSION }}
+        release_name: Release ${{ env.VERSION }}
+        body: |
+          Changes in this Release:
+          - Automatically created by GitHub Actions.
+        draft: false
+        prerelease: false
