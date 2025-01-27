@@ -112,7 +112,6 @@ def nn_import_button(self):
             self.show_error("2 Same parameters. Verify the parameters")
         elif temperature <= 0 :
             self.show_error("Temperature must be positive")
-
         #ploting energy distribution with parameters computed based on fisher
 
         elif (self.data.md_data_loaded and self.data.theta_loaded):

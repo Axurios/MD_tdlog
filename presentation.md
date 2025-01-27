@@ -168,13 +168,34 @@ class Window(QMainWindow):
 * Loss Landscape pour 2 paramètres aléatoires
 
 ---
-calcul fait (energy, fisher, ks test)
+calcul des energies prédites par minimisation de MSE et de Fisher 
+![w:487 h:291](images/mse_energy.png) ![w:487 h:291](images/fisher_energy.png)
+
+---
+```python
+def fisher_theta(Data : DataHolder, gradstr : str, forcestr: str, beta : float):
+    keys  = list(Data.md_data.keys())   # getting each experience
+    G_list, F_list, GGT =[], [], []     # list of gradient of descriptor, forces
+    for key in keys :
+        for atoms in Data.md_data[key]['atoms']:
+            ...
+    #computing theta based on Fisher
+    c_mat = np.array([(beta**2)*np.dot(G_list[i].transpose(),F_list[i]) for i in range(len(G_list))])
+    for G in G_list :
+        GGT.append(np.dot(G.transpose(),G))
+    c = np.mean(np.stack(c), axis = 0)
+    T = np.mean(np.stack(GGT), axis=0) * beta**2
+    
+    theta_fisher = np.linalg.solve(T, c)
+    return theta_fisher
+```
 
 ---
 disabling button and error message
 
 ---
 nn manager windows and itself
+![](images/nnmanager.png)
 
 <!-- --- -->
 <!-- loss landscape visualizer (interface) -->
