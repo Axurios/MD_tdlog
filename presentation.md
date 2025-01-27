@@ -78,11 +78,16 @@ D'abord restreint aux modèles linéaires, puis adaptation aux réseaux de neuro
 ---
 
 ### II - Choix techniques
-* python Qt plutôt que Web interface, test tkinter, problème interaction graph long terme.
+* Interface Qt plutôt qu'interface web : destiné à une utilisation locale des chercheurs
+* Utilisation de Qt : bibliothèque très complète, beaucoup d'options pour les graphs (ex : intéractions)
+* Utilisation de matplotlib : adapté pour les courbes et les landscapes, multiples options de personnalisation
+
+---
+<!-- * python Qt plutôt que Web interface, test tkinter, problème interaction graph long terme.
 * séparation UI, data, processing etc (check architecture name)
 * Object oriented, dataholder etc
 * python package for source code (might separate ui, etc in further package ?)
-* plt plot into qt ui
+* plt plot into qt ui -->
 <!-- --- 
 commentaire  -->
 <!-- ---
