@@ -5,6 +5,10 @@ on:
     branches:
       - kenfromalex # Only trigger on pushes to the main branch
 
+permissions:
+  contents: write  # Allow the workflow to create releases
+  id-token: write  # Allow the workflow to use id-token
+
 jobs:
   check-and-release:
     name: Check Version and Create Release
