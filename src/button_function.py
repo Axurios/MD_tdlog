@@ -79,21 +79,6 @@ def compute_and_plot_distribution(self):
         self.show_error(f"{e}, Probable error of input strings or Data errors.")
 
 def compute_theta_of_fischer(self):
-    fig  = CDF_fisher(self.data,self.choice1.currentText(), self.choice3.currentText(), self.choice2.currentText(), 1 )
-    self.show_plot(fig)
-
-def compute_ks_test(self):
-    fig  = ks_plot(self.data,self.choice1.currentText(), self.choice3.currentText(), self.choice2.currentText(), 1 )
-    self.show_plot(fig)
-
-
-
-# Neural Network Manager
-# importing NN model :
-def nn_import_button(self):
-    """Open the Neural Network Manager Dialog."""
-    nn_manager_dialog = NNManagerDialog(self.nn_manager)
-    nn_manager_dialog.exec_()
     try : 
         #verify if strings are chosen correctly
 
@@ -125,6 +110,22 @@ def nn_import_button(self):
             self.show_error("No Theta file")
     except Exception as e:
         self.show_error(f"{e}, Probable error of input strings or Data errors.")
+
+
+
+
+def compute_ks_test(self):
+    fig  = ks_plot(self.data,self.choice1.currentText(), self.choice3.currentText(), self.choice2.currentText(), 1 )
+    self.show_plot(fig)
+
+
+
+# Neural Network Manager
+# importing NN model :
+def nn_import_button(self):
+    """Open the Neural Network Manager Dialog."""
+    nn_manager_dialog = NNManagerDialog(self.nn_manager)
+    nn_manager_dialog.exec_()
 
 
 

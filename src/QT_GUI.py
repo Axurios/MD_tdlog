@@ -229,7 +229,7 @@ class LossLandscapeWindow(QMainWindow):
         self.plot = None
         self.main_window = main_window  # Reference to the main window
         self.create_ui()
-        self.load_data()
+        #self.load_data()
         
 
     def create_ui(self):
