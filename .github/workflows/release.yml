@@ -22,9 +22,19 @@ jobs:
       id: extract_version
       run: |
         # Navigate to the directory containing setup.py (adjust path as necessary)
-        cd ../..
+        cd ../../
         # Extract the version from setup.py
-        VERSION=$(python -c "import re; f = open('setup.py').read(); print(re.search(r'version=[\"\\']([^\"\\']+)[\"\\']', f).group(1))")
+        
+        VERSION=$(python -c "
+        import re
+        f = open('setup.py').read()
+        match = re.search(r'version\s*=\s*[\"\\']([^\"\\']+)[\"\\']', f)
+        if match:
+            print(match.group(1))  # Print only the version number
+        else:
+            print('Not found')  # In case no version is found
+        ")
+
         echo "VERSION=$VERSION" >> $GITHUB_ENV
 
     - name: Fetch Existing Tags
