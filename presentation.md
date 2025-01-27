@@ -88,6 +88,7 @@ commentaire  -->
 ---
 
 
+
 ```python
 def selection_sort(seq):
     i=0
@@ -153,6 +154,19 @@ class Window(QMainWindow):
             self.create_imput_boxes()
 ```
 
+<!-- --- -->
+<!-- #### Création d'une interface Qt permettant la manipulation des données -->
+
+---
+##### Fenêtre Loss Landscape
+![w:974 h:582](images/loss_1.png)
+
+---
+##### Fonctionnalités
+* Choisir un type de LOSS parmi : MSE, MAE, Hinge Loss et Cross Entropy
+* Choisir un réseau de neurones : SimpleMPL, DoubleMLP, ...
+* Loss Landscape pour 2 paramètres aléatoires
+
 ---
 calcul fait (energy, fisher, ks test)
 
@@ -162,14 +176,19 @@ disabling button and error message
 ---
 nn manager windows and itself
 
----
-loss landscape visualizer (interface)
+<!-- --- -->
+<!-- loss landscape visualizer (interface) -->
 
 ---
 ### IV - Difficultés rencontrées
-* tests et interface graphique
 * partie scientifique
-* generalisation des données etc
+* tests et interface graphique
+* généralisation des données
+
+---
+#### Difficultés pour le Loss Landscape
+* Réseau de neurones final indisponibles : entraînement sur MNIST
+* Choix des paramètres variables : aléatoire
 
 
 ---
