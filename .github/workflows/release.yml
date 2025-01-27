@@ -3,7 +3,7 @@ name: Create Release
 on:
   push:
     branches:
-      - kenfromalex # Only trigger on pushes to the main branch
+      - main # Only trigger on pushes to the main branch
 
 permissions:
   contents: write  # Allow the workflow to create releases

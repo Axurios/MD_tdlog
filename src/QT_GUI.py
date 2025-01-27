@@ -118,7 +118,7 @@ class Window(QMainWindow):
                                         window_height-box1_height*2-y_box1*2,
                                         box1_width, box1_height))
             self.btn4.clicked.connect(lambda: compute_theta_of_fischer(self))
-            self.btn4.setEnabled(False)
+            #self.btn4.setEnabled(False)
 
 
             # Compute kolmogorov smirnov test
@@ -127,7 +127,7 @@ class Window(QMainWindow):
                                         window_height-box1_height*3-y_box1*3,
                                         box1_width, box1_height))
             self.btn5.clicked.connect(lambda: compute_ks_test(self))
-            self.btn5.setEnabled(False)
+            #self.btn5.setEnabled(False)
 
 
             # launch neural network manager
@@ -185,24 +185,26 @@ class Window(QMainWindow):
             self.choice3 = QComboBox(self)
             self.choice3.setGeometry(QRect(x_line2, y_box1*4 + box1_height*3,
                                            int(box1_width*1.5), box1_height))
-        
+        def create_imput_boxes(self):
+            self.input1 = QLineEdit(self)
+            self.input1.setGeometry(QRect(x_line2, window_height//2 + box1_height + y_box1,
+                                          box1_width, box1_height))
+            self.input1.setPlaceholderText("Temperature in K")        
+
+
         def update_buttons(self):
             """Enable or disable buttons based on file upload status."""
             enable = self.data.md_data_loaded and self.data.theta_loaded
             # self.btn3.setEnabled(enable)
-            self.btn4.setEnabled(enable)
-            self.btn5.setEnabled(enable)
+            # self.btn4.setEnabled(enable)
+            # self.btn5.setEnabled(enable)
 
         def open_loss_landscape(self):
             """Open the Loss Landscape window."""
             self.hide()  # Close the main window
             self.loss_landscape_window.show()  # Show the new window
 
-        def create_imput_boxes(self):
-            self.input1 = QLineEdit(self)
-            self.input1.setGeometry(QRect(x_line2, window_height//2 + box1_height + y_box1,
-                                          box1_width, box1_height))
-            self.input1.setPlaceholderText("Temperature in K")
+
 
             
         def show_plot(self, fig):

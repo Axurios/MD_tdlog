@@ -28,7 +28,6 @@ def select_md_file(self):
             self.choice1.addItems(choices)
             self.choice2.addItems(choices)
             self.choice3.addItems(choices)
-            self.update_buttons()
         else:
             self.show_error("Couldn't Load MD_Data")
 
@@ -51,7 +50,6 @@ def select_theta_file(self):
         if file_name:
             self.lbl2.setText(f"Theta File Path : {file_name}")
             self.data.load_theta(file_name)
-            self.update_buttons()
         else:
             self.show_error("Couldn't Load Theta")
 
@@ -89,7 +87,12 @@ def compute_theta_of_fischer(self):
         text = self.input1.text()
         temperature = int(text) if text else 300
 
-        if descriptorstring == gradientstring :
+        if not self.data.md_data_loaded:
+            self.show_error("No MD_Data file")
+        elif not self.data.theta_loaded:
+            self.show_error("No Theta file")
+
+        elif descriptorstring == gradientstring :
             self.show_error("2 Same parameters. Verify the parameters")
         elif descriptorstring == forcestring :
             self.show_error("2 Same parameters. Verify the parameters")
@@ -104,10 +107,8 @@ def compute_theta_of_fischer(self):
             to_beta = 1/(Boltzmann*temperature)
             fig  = CDF_fisher(self.data, descriptorstring, gradientstring, forcestring, beta = to_beta)    
             self.show_plot(fig)
-        elif not self.data.md_data_loaded:
-            self.show_error("No MD_Data file")
         else:
-            self.show_error("No Theta file")
+            self.show_error("Unknown Error")
     except Exception as e:
         self.show_error(f"{e}, Probable error of input strings or Data errors.")
 
@@ -115,8 +116,40 @@ def compute_theta_of_fischer(self):
 
 
 def compute_ks_test(self):
-    fig  = ks_plot(self.data,self.choice1.currentText(), self.choice3.currentText(), self.choice2.currentText(), 1 )
-    self.show_plot(fig)
+    try : 
+        #verify if strings are chosen correctly
+
+        descriptorstring = self.choice1.currentText()
+        gradientstring = self.choice3.currentText()
+        forcestring  = self.choice2.currentText()
+
+        text = self.input1.text()
+        temperature = int(text) if text else 300
+
+        if not self.data.md_data_loaded:
+            self.show_error("No MD_Data file")
+        elif not self.data.theta_loaded:
+            self.show_error("No Theta file")
+
+        elif descriptorstring == gradientstring :
+            self.show_error("2 Same parameters. Verify the parameters")
+        elif descriptorstring == forcestring :
+            self.show_error("2 Same parameters. Verify the parameters")
+        elif gradientstring ==  forcestring :
+            self.show_error("2 Same parameters. Verify the parameters")
+        elif temperature <= 0 :
+            self.show_error("Temperature must be positive")
+
+        #ploting energy distribution with parameters computed based on fisher
+
+        elif (self.data.md_data_loaded and self.data.theta_loaded):
+            to_beta = 1/(Boltzmann*temperature)
+            fig  = ks_plot(self.data,self.choice1.currentText(), self.choice3.currentText(), self.choice2.currentText(), 1 )
+            self.show_plot(fig)
+        else:
+            self.show_error("Unknown Error")
+    except Exception as e:
+        self.show_error(f"{e}, Probable error of input strings or Data errors.")
 
 
 

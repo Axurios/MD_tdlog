@@ -6,6 +6,7 @@ from matplotlib.figure import Figure
 from .fisher import fisher_theta
 
 
+
 def cdf(data: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
     """
     Compute Cumulative Distribution Function (CDF).    
@@ -126,7 +127,7 @@ def ks_plot(Data : DataHolder, descstr : str,  gradstr : str, forcestr : str, be
                 lambda_ = np.sqrt(n_eff) * statistic  # D is the KS statistic
                 p_value = Q_KS(lambda_)
 
-                print({"statistique": statistic, "p_value": p_value, "stat_location": round(union_list[max_index], 2), "stat_sign": stat_sign})
+                #print({"statistique": statistic, "p_value": p_value, "stat_location": round(union_list[max_index], 2), "stat_sign": stat_sign})
             else:
                 raise ValueError("One of the input CDF arrays is empty or too small.")
 #    return fig
