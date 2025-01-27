@@ -199,10 +199,10 @@ def fisher_theta(Data : DataHolder, gradstr : str, forcestr: str, beta : float):
 ```
 
 ---
-disabling button and error message
+Message
 
 ---
-nn manager windows and itself
+Neural Network manager (graphical interface and nn-holder separated)
 ![](images/nnmanager.png)
 
 ---
@@ -214,7 +214,7 @@ nn manager windows and itself
 ---
 ### IV - Difficultés rencontrées
 * partie scientifique
-*  généralisation des données
+* généralisation des données
 
 ---
 #### tests et interface graphique
