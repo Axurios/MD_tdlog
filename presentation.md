@@ -83,6 +83,12 @@ D'abord restreint aux modèles linéaires, puis adaptation aux réseaux de neuro
 * Utilisation de matplotlib : adapté pour les courbes et les landscapes, multiples options de personnalisation
 
 ---
+* Orienté objet : Cohérence avec les bibliothèques utilisées, création de nouvelles classes pour les objets manipulés (dataholders, neural networks)
+* Organisation du code en package python.
+
+
+
+---
 ![](images/dependencies_graph.png)
 
 
@@ -149,7 +155,10 @@ class Window(QMainWindow):
 * Loss Landscape pour 2 paramètres aléatoires
 
 ---
-![w:487 h:291](images/loss_3.png) ![w:487 h:291](images/loss_4.png)
+
+![w:487 h:291](images/loss_2.png)  ![w:487 h:291](images/loss_3.png)
+
+![w:487 h:291](images/loss_4.png)
 
 ---
 calcul des energies prédites par minimisation de MSE et de Fisher 
@@ -175,6 +184,10 @@ def fisher_theta(Data : DataHolder, gradstr : str, forcestr: str, beta : float):
     theta_fisher = np.linalg.solve(T, c)
     return theta_fisher
 ```
+---
+Test de Kolmogorov-Smirnov
+![](images/ks_test.png)
+
 
 ---
 Message d'erreurs :
@@ -227,6 +240,8 @@ tests\test_dataholder.py ...                                                    
 * Adapter Fisher aux GNN.
 * Tester la stabilité après fine-tuning selon Fisher.
 * Interface graphique pour construire son GNN.
+* Choix des paramètres variables pour la Loss Landscape
+
 
  
 <!--
