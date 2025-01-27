@@ -85,7 +85,7 @@ D'abord restreint aux modèles linéaires, puis adaptation aux réseaux de neuro
 * plt plot into qt ui
 <!-- --- 
 commentaire  -->
----
+<!-- ---
 
 
 
@@ -103,7 +103,7 @@ def selection_sort(seq):
             swap(seq, i,j_min)
         i += 1
 
-```
+``` -->
 
 ---
 ### III - Réalisation(s)
@@ -197,14 +197,35 @@ disabling button and error message
 nn manager windows and itself
 ![](images/nnmanager.png)
 
+---
+![w:1462 h:656](images/yaml.png)
+
 <!-- --- -->
 <!-- loss landscape visualizer (interface) -->
 
 ---
 ### IV - Difficultés rencontrées
 * partie scientifique
-* tests et interface graphique
-* généralisation des données
+*  généralisation des données
+
+---
+#### tests et interface graphique
+PyQt5 a besoin d'une interface graphique, non disponible sur GitHub Actions par défaut. 
+```bash 
+> pytest tests
+============================================================= test session starts ==============================================================
+platform win32 -- Python 3.11.4, pytest-8.3.4, pluggy-1.5.0
+rootdir: C:\Users\Alexa\OneDrive\Bureau\MD\MD_tdlog
+plugins: jaxtyping-0.2.36
+collected 4 items
+
+tests\test_QtGui.py .                                                                                                                     [ 25%]
+tests\test_dataholder.py ...                                                                                                              [100%] 
+
+============================================================== 4 passed in 0.41s ==============================================================
+```
+
+![w:435 h:214](images/test_failed.png)
 
 ---
 #### Difficultés pour le Loss Landscape
