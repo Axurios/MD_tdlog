@@ -3,7 +3,7 @@ name: Create Release
 on:
   push:
     branches:
-      - kenfromalex
+      - main # Only trigger on pushes to the main branch
 
 jobs:
   check-and-release:
@@ -21,6 +21,8 @@ jobs:
     - name: Extract Version from setup.py
       id: extract_version
       run: |
+        # Navigate to the directory containing setup.py (adjust path as necessary)
+        cd ../..
         # Extract the version from setup.py
         VERSION=$(python -c "import re; f = open('setup.py').read(); print(re.search(r'version=[\"\\']([^\"\\']+)[\"\\']', f).group(1))")
         echo "VERSION=$VERSION" >> $GITHUB_ENV
