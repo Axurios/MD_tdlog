@@ -22,7 +22,6 @@ jobs:
       id: extract_version
       run: |
         # Navigate to the directory containing setup.py (adjust path as necessary)
-        cd ../../
         # Extract the version from setup.py
         
         VERSION=$(python -c "
