@@ -37,7 +37,7 @@ blockquote:after{
 <!--- Welcome to our ReadMe, right-click on this md-file and "Open Preview" to this our presentation of this project --->
 TDLOG & projet de département  
 # Boltzmanian score matching fine-tuning  
-Kenji Chikhaoui, Théodora Gospodaru et A.Dussolle.  
+K.Chikhaoui, T.Gospodaru, A.Dussolle  
 <!-- 27/01/2025 -->
 ![w:600 h:207](images/enpc.png)
 
@@ -143,17 +143,20 @@ class Window(QMainWindow):
 ![w:974 h:582](images/loss_1.png)
 
 ---
-##### Fonctionnalités
+##### Fonctionnalités de Loss landscape
 * Choisir un type de LOSS parmi : MSE, MAE, Hinge Loss et Cross Entropy
 * Choisir un réseau de neurones : SimpleMPL, DoubleMLP, ...
 * Loss Landscape pour 2 paramètres aléatoires
 
 ---
+![w:487 h:291](images/loss_3.png) ![w:487 h:291](images/loss_4.png)
+
+---
 calcul des energies prédites par minimisation de MSE et de Fisher 
 ![w:487 h:291](images/mse_energy.png) ![w:487 h:291](images/fisher_energy.png)
 
----
 
+---
 Calcul de Theta de Fisher
 ```python
 def fisher_theta(Data : DataHolder, gradstr : str, forcestr: str, beta : float):
