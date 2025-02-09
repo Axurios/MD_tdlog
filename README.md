@@ -30,12 +30,24 @@ follow the previous image if needed
 
 ## Purpose 
 
-The applications was designed for researchers from the CEA Paris-Saclay working on the prediction 
-of molecular dynamics. 
-Their goal is to train a prediction model using the Fisher Divergence metric instead of the RMSE.
-However, training the model with this metric would take too long because of the complex formulas
-that are used for computing gradients. We will instead fine-tune the model by adding a linear
-layer that uses the descriptors found for the optimized $\theta$ to calculate $\theta_f$.
+The application was designed for researchers at CEA Paris-Saclay working on the prediction 
+of molecular dynamics. Their objective is to train a prediction model using the Fisher Divergence 
+metric instead of RMSE. However, training the model with this metric would be too 
+time-consuming due to the complexity of the formulas used for computing gradients.  
+
+To address this, we fine-tune the model by adding a linear layer that uses the descriptors 
+found for the optimized $\theta$ to compute $\theta_{f}$.  
+
+The main functionality of our application is this final step. Users can provide their chosen 
+descriptors and obtain the corresponding $\theta_{f}$. Additionally, the application allows users 
+to compare $\theta_{f}$ and $\theta$.  
+
+We chose to develop the application using Qt for several reasons:  
+
+- Researchers often run their programs locally rather than using web-based solutions.  
+- Qt allows for easy modification and extension of functionalities, as the application is written entirely in Python, a language researchers use daily.  
+- Qt integrates well with Matplotlib, which we use for loss landscape visualization because it is highly customizable.  
+
 
 ## Loss Landscape button
 
@@ -129,7 +141,9 @@ $$
 somehow accessible for the points in the database as long as they are the atomic forces. 
 Since forces can be computed, we can reformulate the score matching objective to avoid computing the Laplacian. By partial integration, we can easily obtain:
 
-$$J(\theta_{f}) = \mathbb{E}_{p(\mathbf{x})} \left[ (1/2)  |s_{\theta_{f}}(\mathbf{x})|^{2} - s_{\theta_{f}}(\mathbf{x})^{T} \nabla_{\mathbf{x}} \log p(\mathbf{x}) \right]$$
+$$
+J(\theta\_{f}) = \mathbb{E}\_{p(\mathbf{x})} \left[ (1/2)  |s_{\theta\_{f}}(\mathbf{x})|^{2} - s_{\theta\_{f}}(\mathbf{x})^{T} \nabla_{\mathbf{x}} \log p(\mathbf{x}) \right]
+$$
 
 Again, we can derive exactly the same form:
 
@@ -139,11 +153,13 @@ $$
 
 where T is:
 
-$$T = (\beta^{2}/M) \sum_{m} G(\mathbf{x}_{m})^{T} G(\mathbf{x}_{m})$$
+$$T = (\beta^{2}/M) \sum\_{m} G(\mathbf{x}\_{m})^{T} G(\mathbf{x}\_{m})$$
 
 and c  is:
 
-$$c = \mathbb{E}_{p(\mathbf{x})} \left[ \beta^{2} G(\mathbf{x})^{T} \nabla_{\mathbf{x}} U(\mathbf{x}) \right]$$
+$$
+c = \mathbb{E}\_{p(\mathbf{x})} \left[ \beta\^{2} G(\mathbf{x})\^{T} \nabla_{\mathbf{x}} U(\mathbf{x}) \right]
+$$
 
  c  represents the expected inner product between the gradients of $D(\mathbf{x})$ and the force field $\nabla_{\mathbf{x}} U(\mathbf{x})$. 
  The optimal $\theta_f$ is formally:
@@ -155,7 +171,7 @@ $$
 and explicitly:
 
 $$
-\theta_{f} = \left( \mathbb{E}_{p(\mathbf{x})} \left[ G(\mathbf{x})^{T} G(\mathbf{x}) \right] \right)^{-1} \left( \mathbb{E}_{p(\mathbf{x})} \left[ G(\mathbf{x})^{T} \nabla_{\mathbf{x}} U(\mathbf{x}) \right] \right)
+\theta\_{f} = \left( \mathbb{E}\_{p(\mathbf{x})} \left[ G(\mathbf{x})^{T} G(\mathbf{x}) \right] \right)^{-1} \left( \mathbb{E}\_{p(\mathbf{x})} \left[ G(\mathbf{x})^{T} \nabla_{\mathbf{x}} U(\mathbf{x}) \right] \right)
 $$
 
 We then use this new set of parameters to compute the new predicted energies (and the cumulative distribution function associated).
