@@ -24,4 +24,6 @@ pytest>=8.3.4
 #build
 build>=1.2.2
 
+flax>=0.10.2
+e3x>=1.0.2
 

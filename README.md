@@ -1,5 +1,7 @@
 #  Welcome to our README
 ## How to use it ?
+**run the main.py**
+
 right-click on the "diapo.md" file and "Open Preview" to view our presentation of this project.
 (might need marp extension on vscode)
 
