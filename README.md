@@ -141,7 +141,7 @@ $$
 
 T is such 
 $$
-T = \frac{\beta^2}{M} \sum_{m} G(x_{m})^{T} G(x_{m})
+T = {\beta^2}/{M} \sum_{m} G(x_{m})^{T} G(x_{m})
 $$ 
 
 and c is such :
