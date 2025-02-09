@@ -28,14 +28,14 @@ in the "descriptor name" choose (once data are loaded) : *milady-descriptors*
 follow the previous image if needed
 
 
-## What does it do ?
+## Purpose 
 
 The applications was designed for researchers from the CEA Paris-Saclay working on the prediction 
 of molecular dynamics. 
 Their goal is to train a prediction model using the Fisher Divergence metric instead of the RMSE.
 However, training the model with this metric would take too long because of the complex formulas
 that are used for computing gradients. We will instead fine-tune the model by adding a linear
-layer that 
+layer that uses the descriptors found for the optimized $$ \theta $$ to calculate $$ \theta_fisher $$.
 
 ## Loss Landscape button
 
