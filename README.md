@@ -20,6 +20,27 @@ and in the "Select Theta file" : "theta.pkl" preferably or "theta_md.pkl"
 (like in main_interface.png) 
 
 
+The "Loss Landscape" button, located in the bottom left corner, allows users to switch to a 
+second window where they can plot the loss landscape for a selected model and loss function.
+![](images/loss_window.png)  
+
+Initially, no model or loss function is selected. If the user attempts to plot the loss 
+landscape without selecting these parameters, an error message will be displayed.
+
+Once a model and a loss function are selected, their names will appear in the corresponding 
+boxes, and the loss landscape functionality will be enabled.
+
+The two varying weights for the loss landscape are selected randomly. As a result, if the 
+user presses the "Loss Landscape" button multiple times without changing the model or loss 
+function, the results will still vary.
+
+On certain computers, a graphical bug may occur when displaying the loss landscape, causing 
+a noise rectangle to appear next to the plot. This artifact often disappears if the user 
+navigates back to the main window and then returns to the loss landscape window.
+
+Returning to the main window does not erase the last generated loss landscape plot.
+
+
 ## What does it do ?
 ### (warning, mostly math that explain what we are computing)
 Let's consider a physical system of $N$ atoms $\mathbf{x} \in \mathbb{R}^{3N}$. In physics, we are very interested in knowing the Boltzmann distribution $p(\mathbf{x})$, which is the probability density function. This distribution allows us to understand the physics of the system and calculate quantities such as the free energy $F$:
@@ -102,3 +123,4 @@ and explicitly :
 $$
 \theta_{f}^{*} = \left( \mathbb{E}_{p(\mathbf{x})} \left[ G(\mathbf{x})^{T} G(\mathbf{x}) \right] \right)^{-1} \left( \mathbb{E}_{p(\mathbf{x})} \left[ G(\mathbf{x})^{T} \nabla_{\mathbf{x}} U(\mathbf{x}) \right] \right)
 $$
+
