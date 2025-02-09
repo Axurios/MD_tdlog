@@ -2,7 +2,8 @@
 ## How to use it ?
 **run the main.py**
 
-right-click on the "diapo.md" file and "Open Preview" to view our presentation of this project.
+you can see our presentation as a markdown file directly on github by clicking *presentation.md* 
+or in vscode right-click on the "diapo.md" file and "Open Preview" to view our presentation of this project.
 (might need marp extension on vscode)
 
 Before running main.py, please ensure that you have a virtual environment ready
