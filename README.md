@@ -116,7 +116,7 @@ We aim to find the optimal parameter $$\theta_{f} \in \mathbb{R}^D$$ that minimi
 The Fisher divergence between $$p(\mathbf{x})$$ and $$p_{\theta_{f}}(\mathbf{x})$$ is:
 
 $$
-F(p, p_{\theta_{f}}) = 1/2 \int p(\mathbf{x}) || \nabla_{\mathbf{x}} \log p(\mathbf{x}) - \nabla_{\mathbf{x}} \log p_{\theta_{f}}(\mathbf{x}) ||^{2} d\mathbf{x}
+F(p, p_{\theta_{f}}) = 1/2 \int p(\mathbf{x}) |\nabla_{\mathbf{x}} \log p(\mathbf{x}) - \nabla_{\mathbf{x}} \log p_{\theta_{f}}(\mathbf{x})|^{2} d\mathbf{x}
 $$
 
 
@@ -130,13 +130,13 @@ somehow accessible for the points in the database as long as they are the atomic
 Since  $$-\nabla_{\mathbf{x}} U(\mathbf{x})$$ the atomic forces can be computed, we can reformulate the score matching objective to avoid computing the Laplacian. By part integration we can easily obtain: 
 
 $$
-J(\theta_{f}) = \mathbb{E}_{p(\mathbf{x})} \left[ \frac{1}{2} \left\| s_{\theta_{f}}(\mathbf{x}) \right\|^2 - s_{\theta_{f}}(\mathbf{x})^\top \nabla_{\mathbf{x}} \log p(\mathbf{x}) \right]
+J(\theta_{f}) = \mathbb{E}_{p(\mathbf{x})} \left[ 1/2 \left\| s_{\theta_{f}}(\mathbf{x}) \right\|^2 - s_{\theta_{f}}(\mathbf{x})^{T} \nabla_{\mathbf{x}} \log p(\mathbf{x}) \right]
 $$
 
 Again we can derive exactly the same form
 
 $$   
-J(\theta_{f}) = \frac{1}{2} \theta_{f}^{T} T \theta_{f} + \theta_{f}^{T}  c
+J(\theta_{f}) = 1/2 \theta_{f}^{T} T \theta_{f} + \theta_{f}^{T}  c
 $$
 
 T is such 
