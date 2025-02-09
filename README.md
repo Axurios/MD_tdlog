@@ -129,7 +129,7 @@ $$
 somehow accessible for the points in the database as long as they are the atomic forces. 
 Since forces can be computed, we can reformulate the score matching objective to avoid computing the Laplacian. By partial integration, we can easily obtain:
 
-$$ J(\theta_{f}) = \mathbb{E}_{p(\mathbf{x})} \left[ (1/2) \left  s_{\theta_f}(\mathbf{x}) \right|^2 - s_{\theta_f}(\mathbf{x})^T \nabla_{\mathbf{x}} \log p(\mathbf{x}) \right] $$
+$$J(\theta_{f}) = \mathbb{E}_{p(\mathbf{x})} \left[ (1/2)  |s_{\theta_{f}}(\mathbf{x})|^{2} - s_{\theta_{f}}(\mathbf{x})^{T} \nabla_{\mathbf{x}} \log p(\mathbf{x}) \right]$$
 
 Again, we can derive exactly the same form:
 
@@ -139,15 +139,11 @@ $$
 
 where T is:
 
-$$
-T = (\beta^{2}/M) \sum_{m} G(\mathbf{x}_{m})^{T} G(\mathbf{x}_{m})
-$$
+$$T = (\beta^{2}/M) \sum_{m} G(\mathbf{x}_{m})^{T} G(\mathbf{x}_{m})$$
 
 and c  is:
 
-$$
-c = \mathbb{E}_{p(\mathbf{x})} \left[ \beta^{2} G(\mathbf{x})^{T} \nabla_{\mathbf{x}} U(\mathbf{x}) \right]
-$$
+$$c = \mathbb{E}_{p(\mathbf{x})} \left[ \beta^{2} G(\mathbf{x})^{T} \nabla_{\mathbf{x}} U(\mathbf{x}) \right]$$
 
  c  represents the expected inner product between the gradients of $D(\mathbf{x})$ and the force field $\nabla_{\mathbf{x}} U(\mathbf{x})$. 
  The optimal $\theta_f$ is formally:
