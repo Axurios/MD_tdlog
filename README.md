@@ -30,19 +30,25 @@ follow the previous image if needed
 
 ## Purpose 
 
-The applications was designed for researchers from the CEA Paris-Saclay working on the prediction 
-of molecular dynamics. 
-Their goal is to train a prediction model using the Fisher Divergence metric instead of the RMSE.
-However, training the model with this metric would take too long because of the complex formulas
-that are used for computing gradients. We will instead fine-tune the model by adding a linear
-layer that uses the descriptors found for the optimized $\theta$ to calculate $\theta_f$.
+The application was designed for researchers at CEA Paris-Saclay working on the prediction 
+of molecular dynamics. Their objective is to train a prediction model using the Fisher Divergence 
+metric instead of RMSE. However, training the model with this metric would be too 
+time-consuming due to the complexity of the formulas used for computing gradients.  
 
-Our application's main function consists of that last step. The user can provide the descriptors he 
-wants and get the corresponding $\theta_f$. It also allows the user to compare $\theta_f$ and $\theta$.
+To address this, we fine-tune the model by adding a linear layer that uses the descriptors 
+found for the optimized **θ** to compute **θ_f**.  
 
-We chose the design a Qt application because researchers often run their programs locally instead of 
-using websites. It is also easier for them to changes and add functionnalities as the only programming
-language used is python, which they use on a daily basis. 
+The main functionality of our application is this final step. Users can provide their chosen 
+descriptors and obtain the corresponding **θ_f**. Additionally, the application allows users 
+to compare **θ_f** and **θ**.  
+
+We chose to develop the application using Qt for several reasons:  
+
+- Researchers often run their programs **locally** rather than using web-based solutions.  
+- Qt allows for easy modification and extension of functionalities, as the application is written entirely in **Python**, a language researchers use daily.  
+- Qt integrates well with **Matplotlib**, which we use for **loss landscape visualization** because it is highly customizable.  
+
+
 
 
 ## Loss Landscape button
