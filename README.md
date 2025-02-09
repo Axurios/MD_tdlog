@@ -112,7 +112,7 @@ We aim to find the optimal parameter $$\theta_{f} \in \mathbb{R}^D$$ that minimi
 
 The Fisher divergence between $$p(\mathbf{x})$$ and $$p_{\theta_{f}}(\mathbf{x})$$ is:
 $$
-F(p,  p_{\theta_{f}}) = \frac{1}{2} \int p(\mathbf{x}) \left\| \nabla_{\mathbf{x}} \log p(\mathbf{x}) - \nabla_{\mathbf{x}} \log p_{\theta_{f}}(\mathbf{x}) \right\|^2 d\mathbf{x}
+F(p, p_{\theta_{f}}) = 1/2 \int p(\mathbf{x}) || \nabla_{\mathbf{x}} \log p(\mathbf{x}) - \nabla_{\mathbf{x}} \log p_{\theta_{f}}(\mathbf{x}) ||^{2} d\mathbf{x}
 $$
 
 
