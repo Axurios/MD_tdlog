@@ -2,7 +2,7 @@
 ## How to use it ?
 **run the main.py**
 
-you can see our presentation as a markdown file directly on github by clicking *presentation.md* 
+you can see our presentation as a markdown file directly on github by clicking *presentation.md* it is part of the readme as it gives an overview of mostly what has been done
 or in vscode right-click on the "diapo.md" file and "Open Preview" to view our presentation of this project.
 (might need marp extension on vscode)
 
