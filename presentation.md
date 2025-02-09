@@ -37,7 +37,7 @@ blockquote:after{
 <!--- Welcome to our ReadMe, right-click on this md-file and "Open Preview" to this our presentation of this project --->
 TDLOG & projet de département  
 # Boltzmanian score matching fine-tuning  
-Kenji Chikhaoui, Théodora Gospodaru et A.Dussolle.  
+K.Chikhaoui, T.Gospodaru, A.Dussolle  
 <!-- 27/01/2025 -->
 ![w:600 h:207](images/enpc.png)
 
@@ -78,31 +78,19 @@ D'abord restreint aux modèles linéaires, puis adaptation aux réseaux de neuro
 ---
 
 ### II - Choix techniques
-* python Qt plutôt que Web interface, test tkinter, problème interaction graph long terme.
-* séparation UI, data, processing etc (check architecture name)
-* Object oriented, dataholder etc
-* python package for source code (might separate ui, etc in further package ?)
-* plt plot into qt ui
-<!-- --- 
-commentaire  -->
+* Interface Qt plutôt qu'interface web : destiné à une utilisation locale des chercheurs
+* Utilisation de Qt : bibliothèque très complète, beaucoup d'options pour les graphs (ex : intéractions)
+* Utilisation de matplotlib : adapté pour les courbes et les landscapes, multiples options de personnalisation
+
 ---
+* Orienté objet : Cohérence avec les bibliothèques utilisées, création de nouvelles classes pour les objets manipulés (dataholders, neural networks)
+* Organisation du code en package python.
 
 
-```python
-def selection_sort(seq):
-    i=0
-    while i < len(seq) - 1 :
-        j_min = i
-        j = i+1
-        while j < len(seq):
-            if seq[j] < seq[j_min]:
-                j_min = j
-            j += 1
-        if j_min != 1 :
-            swap(seq, i,j_min)
-        i += 1
 
-```
+---
+![](images/dependencies_graph.png)
+
 
 ---
 ### III - Réalisation(s)
@@ -153,23 +141,98 @@ class Window(QMainWindow):
             self.create_imput_boxes()
 ```
 
----
-calcul fait (energy, fisher, ks test)
+<!-- --- -->
+<!-- #### Création d'une interface Qt permettant la manipulation des données -->
 
 ---
-disabling button and error message
+##### Fenêtre Loss Landscape
+![w:974 h:582](images/loss_1.png)
 
 ---
-nn manager windows and itself
+##### Fonctionnalités de Loss landscape
+* Choisir un type de LOSS parmi : MSE, MAE, Hinge Loss et Cross Entropy
+* Choisir un réseau de neurones : SimpleMPL, DoubleMLP, ...
+* Loss Landscape pour 2 paramètres aléatoires
 
 ---
-loss landscape visualizer (interface)
+
+![w:487 h:291](images/loss_2.png)  ![w:487 h:291](images/loss_3.png)
+
+![w:487 h:291](images/loss_4.png)
+
+---
+calcul des energies prédites par minimisation de MSE et de Fisher 
+![w:487 h:291](images/mse_energy.png) ![w:487 h:291](images/fisher_energy.png)
+
+
+---
+Calcul de Theta de Fisher
+```python
+def fisher_theta(Data : DataHolder, gradstr : str, forcestr: str, beta : float):
+    keys  = list(Data.md_data.keys())   # getting each experience
+    G_list, F_list, GGT =[], [], []     # list of gradient of descriptor, forces
+    for key in keys :
+        for atoms in Data.md_data[key]['atoms']:
+            ...
+    #computing theta based on Fisher
+    c_mat = np.array([(beta**2)*np.dot(G_list[i].transpose(),F_list[i]) for i in range(len(G_list))])
+    for G in G_list :
+        GGT.append(np.dot(G.transpose(),G))
+    c = np.mean(np.stack(c), axis = 0)
+    T = np.mean(np.stack(GGT), axis=0) * beta**2
+    
+    theta_fisher = np.linalg.solve(T, c)
+    return theta_fisher
+```
+---
+Test de Kolmogorov-Smirnov
+![](images/ks_test.png)
+
+
+---
+Message d'erreurs :
+![w:560 h:282](images/error1.png) ![w:560 h:282](images/error2.png)
+
+---
+Neural Network manager  
+(graphical interface and nn-holder separated)
+![](images/nnmanager.png)
+
+---
+![w:1462 h:656](images/yaml.png)
+
+<!-- --- -->
+<!-- loss landscape visualizer (interface) -->
 
 ---
 ### IV - Difficultés rencontrées
-* tests et interface graphique
 * partie scientifique
-* generalisation des données etc
+* généralisation des données
+* cf. slides suivantes
+
+---
+#### tests et interface graphique
+PyQt5 a besoin d'une interface graphique, non disponible sur GitHub Actions par défaut. 
+```bash 
+> pytest tests
+============================================================= test session starts ==============================================================
+platform win32 -- Python 3.11.4, pytest-8.3.4, pluggy-1.5.0
+rootdir: C:\Users\Alexa\OneDrive\Bureau\MD\MD_tdlog
+plugins: jaxtyping-0.2.36
+collected 4 items
+
+tests\test_QtGui.py .                                                                                                                     [ 25%]
+tests\test_dataholder.py ...                                                                                                              [100%] 
+
+============================================================== 4 passed in 0.41s ==============================================================
+```
+
+![w:435 h:214](images/test_failed.png)
+
+---
+#### Difficultés pour le Loss Landscape
+* Réseau de neurones final indisponibles : entraînement sur MNIST
+* Choix des paramètres variables : aléatoire
 
 
 ---
@@ -177,6 +240,8 @@ loss landscape visualizer (interface)
 * Adapter Fisher aux GNN.
 * Tester la stabilité après fine-tuning selon Fisher.
 * Interface graphique pour construire son GNN.
+* Choix des paramètres variables pour la Loss Landscape
+
 
  
 <!--
