@@ -35,7 +35,7 @@ of molecular dynamics.
 Their goal is to train a prediction model using the Fisher Divergence metric instead of the RMSE.
 However, training the model with this metric would take too long because of the complex formulas
 that are used for computing gradients. We will instead fine-tune the model by adding a linear
-layer that uses the descriptors found for the optimized $$ \theta $$ to calculate $$ \theta_fisher $$.
+layer that uses the descriptors found for the optimized $\theta$ to calculate $\theta_f$.
 
 ## Loss Landscape button
 
