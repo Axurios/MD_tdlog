@@ -37,6 +37,14 @@ However, training the model with this metric would take too long because of the 
 that are used for computing gradients. We will instead fine-tune the model by adding a linear
 layer that uses the descriptors found for the optimized $\theta$ to calculate $\theta_f$.
 
+Our application's main function consists of that last step. The user can provide the descriptors he 
+wants and get the corresponding $\theta_f$. It also allows the user to compare $\theta_f$ and $\theta$.
+
+We chose the design a Qt application because researchers often run their programs locally instead of 
+using websites. It is also easier for them to changes and add functionnalities as the only programming
+language used is python, which they use on a daily basis. 
+
+
 ## Loss Landscape button
 
 The "Loss Landscape" button, located in the bottom left corner, allows users to switch to a 
