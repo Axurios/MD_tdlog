@@ -24,6 +24,7 @@ and in the "Select Theta file" : "theta.pkl" preferably or "theta_md.pkl"
 
 The "Loss Landscape" button, located in the bottom left corner, allows users to switch to a 
 second window where they can plot the loss landscape for a selected model and loss function.
+![](images/loss_window.png)  
 
 Initially, no model or loss function is selected. If the user attempts to plot the loss 
 landscape without selecting these parameters, an error message will be displayed.
