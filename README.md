@@ -19,8 +19,16 @@ in the "Select MD data file" you should put "NP_1200K_desc.pkl"
 and in the "Select Theta file" : "theta.pkl" preferably or "theta_md.pkl"  
 (like in main_interface.png) 
 
-
 ## What does it do ?
+
+The applications was designed for researchers from the CEA Paris-Saclay working on the prediction 
+of molecular dynamics. 
+Their goal is to train a prediction model using the Fisher Divergence metric instead of the RMSE.
+However, training the model with this metric would take too long because of the complex formulas
+that are used for computing gradients. We will instead fine-tune the model by adding a linear
+layer that 
+
+## Loss Landscape button
 
 The "Loss Landscape" button, located in the bottom left corner, allows users to switch to a 
 second window where they can plot the loss landscape for a selected model and loss function.
