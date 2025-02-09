@@ -129,38 +129,37 @@ $$
 somehow accessible for the points in the database as long as they are the atomic forces. 
 Since forces can be computed, we can reformulate the score matching objective to avoid computing the Laplacian. By partial integration, we can easily obtain:
 
-$$
-J(\theta_f) = \mathbb{E}_{p(\mathbf{x})} \left[ \frac{1}{2} \left  s_{\theta_f}(\mathbf{x}) \right|^2 - s_{\theta_f}(\mathbf{x})^T \nabla_{\mathbf{x}} \log p(\mathbf{x}) \right]
-$$
+$$ J(\theta_{f}) = \mathbb{E}_{p(\mathbf{x})} \left[ (1/2) \left  s_{\theta_f}(\mathbf{x}) \right|^2 - s_{\theta_f}(\mathbf{x})^T \nabla_{\mathbf{x}} \log p(\mathbf{x}) \right] $$
 
 Again, we can derive exactly the same form:
 
 $$
-J(\theta_f) = \frac{1}{2} \theta_f^T T \theta_f + \theta_f^T c
+J(\theta_{f}) = 1/2 \theta_{f}^{T} T \theta_{f} + \theta_{f}^{T} c
 $$
 
-where \( T \) is:
+where T is:
 
 $$
-T = \frac{\beta^2}{M} \sum_{m} G(\mathbf{x}_m)^T G(\mathbf{x}_m)
+T = (\beta^{2}/M) \sum_{m} G(\mathbf{x}_{m})^{T} G(\mathbf{x}_{m})
 $$
 
-and \( c \) is:
+and c  is:
 
 $$
-c = \mathbb{E}_{p(\mathbf{x})} \left[ \beta^2 G(\mathbf{x})^T \nabla_{\mathbf{x}} U(\mathbf{x}) \right]
+c = \mathbb{E}_{p(\mathbf{x})} \left[ \beta^{2} G(\mathbf{x})^{T} \nabla_{\mathbf{x}} U(\mathbf{x}) \right]
 $$
 
-\( c \) represents the expected inner product between the gradients of \( D(\mathbf{x}) \) and the force field \( \nabla_{\mathbf{x}} U(\mathbf{x}) \). The optimal \( \theta_f \) is formally:
+ c  represents the expected inner product between the gradients of $D(\mathbf{x})$ and the force field $\nabla_{\mathbf{x}} U(\mathbf{x})$. 
+ The optimal $\theta_f$ is formally:
 
 $$
-\theta_f^{*} = T^{-1} c
+\theta_{f} = T^{-1} c
 $$
 
 and explicitly:
 
 $$
-\theta_f^* = \left( \mathbb{E}_{p(\mathbf{x})} \left[ G(\mathbf{x})^T G(\mathbf{x}) \right] \right)^{-1} \left( \mathbb{E}_{p(\mathbf{x})} \left[ G(\mathbf{x})^T \nabla_{\mathbf{x}} U(\mathbf{x}) \right] \right)
+\theta_{f} = \left( \mathbb{E}_{p(\mathbf{x})} \left[ G(\mathbf{x})^{T} G(\mathbf{x}) \right] \right)^{-1} \left( \mathbb{E}_{p(\mathbf{x})} \left[ G(\mathbf{x})^{T} \nabla_{\mathbf{x}} U(\mathbf{x}) \right] \right)
 $$
 
 We then use this new set of parameters to compute the new predicted energies (and the cumulative distribution function associated).
