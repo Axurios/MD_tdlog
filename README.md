@@ -36,19 +36,17 @@ metric instead of RMSE. However, training the model with this metric would be to
 time-consuming due to the complexity of the formulas used for computing gradients.  
 
 To address this, we fine-tune the model by adding a linear layer that uses the descriptors 
-found for the optimized **θ** to compute **θ_f**.  
+found for the optimized $\theta$ to compute $\theta_{f}$.  
 
 The main functionality of our application is this final step. Users can provide their chosen 
-descriptors and obtain the corresponding **θ_f**. Additionally, the application allows users 
-to compare **θ_f** and **θ**.  
+descriptors and obtain the corresponding $\theta_{f}$. Additionally, the application allows users 
+to compare $\theta_{f}$ and $\theta$.  
 
 We chose to develop the application using Qt for several reasons:  
 
-- Researchers often run their programs **locally** rather than using web-based solutions.  
-- Qt allows for easy modification and extension of functionalities, as the application is written entirely in **Python**, a language researchers use daily.  
-- Qt integrates well with **Matplotlib**, which we use for **loss landscape visualization** because it is highly customizable.  
-
-
+- Researchers often run their programs locally rather than using web-based solutions.  
+- Qt allows for easy modification and extension of functionalities, as the application is written entirely in Python, a language researchers use daily.  
+- Qt integrates well with Matplotlib, which we use for loss landscape visualization because it is highly customizable.  
 
 
 ## Loss Landscape button
