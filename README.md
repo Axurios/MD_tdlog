@@ -19,6 +19,16 @@ in the "Select MD data file" you should put "NP_1200K_desc.pkl"
 and in the "Select Theta file" : "theta.pkl" preferably or "theta_md.pkl"  
 (like in main_interface.png) 
 
+## What does it do ?
+
+The applications was designed for researchers from the CEA Paris-Saclay working on the prediction 
+of molecular dynamics. 
+Their goal is to train a prediction model using the Fisher Divergence metric instead of the RMSE.
+However, training the model with this metric would take too long because of the complex formulas
+that are used for computing gradients. We will instead fine-tune the model by adding a linear
+layer that 
+
+## Loss Landscape button
 
 The "Loss Landscape" button, located in the bottom left corner, allows users to switch to a 
 second window where they can plot the loss landscape for a selected model and loss function.
@@ -41,7 +51,7 @@ navigates back to the main window and then returns to the loss landscape window.
 Returning to the main window does not erase the last generated loss landscape plot.
 
 
-## What does it do ?
+## What does it do ? (mathematical explaination)
 ### (warning, mostly math that explain what we are computing)
 Let's consider a physical system of $N$ atoms $\mathbf{x} \in \mathbb{R}^{3N}$. In physics, we are very interested in knowing the Boltzmann distribution $p(\mathbf{x})$, which is the probability density function. This distribution allows us to understand the physics of the system and calculate quantities such as the free energy $F$:
 
