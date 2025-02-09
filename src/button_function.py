@@ -197,4 +197,4 @@ def plot_rmse(self):
         self.plot = fig
         self.canvas.figure = fig
         self.canvas.draw()  
-        print("calcul terminé")
+        #print("calcul terminé")

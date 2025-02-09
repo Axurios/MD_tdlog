@@ -246,7 +246,7 @@ class LossLandscapeWindow(QMainWindow):
             self.plot_fig()
     
     def load_data(self):
-        data = np.load("Data/mini_mnist.npz")   
+        data = np.load("mini_mnist.npz")   
 
         self.train_data = data["train_data"]
         self.train_labels = data["train_labels"]
