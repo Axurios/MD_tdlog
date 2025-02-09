@@ -231,7 +231,7 @@ class LossLandscapeWindow(QMainWindow):
         self.plot = None
         self.main_window = main_window  # Reference to the main window
         self.create_ui()
-        #self.load_data()
+        self.load_data()
         
 
     def create_ui(self):
@@ -246,7 +246,7 @@ class LossLandscapeWindow(QMainWindow):
             self.plot_fig()
     
     def load_data(self):
-        data = np.load("Data/mini_mnist.npz")
+        data = np.load("Data/mini_mnist.npz")   
 
         self.train_data = data["train_data"]
         self.train_labels = data["train_labels"]
@@ -312,18 +312,15 @@ class LossLandscapeWindow(QMainWindow):
     def plot_fig(self):
         """Create the 3D plot canvas."""
 
-        if self.plot is None:
-            # Create an empty 3D plot
-            fig = plt.figure()
-            ax = fig.add_subplot(111, projection="3d")
-            ax.set_title("Empty Loss Landscape")
-            ax.set_xlabel("X")
-            ax.set_ylabel("Y")
-            ax.set_zlabel("Z")
-            ax.grid(True)
-        else:
-            # Use the provided plot
-            fig = self.plot
+        
+        # Create an empty 3D plot
+        fig = plt.figure()
+        ax = fig.add_subplot(111, projection="3d")
+        ax.set_title("Empty Loss Landscape")
+        ax.set_xlabel("X")
+        ax.set_ylabel("Y")
+        ax.set_zlabel("Z")
+        ax.grid(True)
 
         # Create the FigureCanvas for embedding the plot
         self.canvas = FigureCanvas(fig)
@@ -338,6 +335,15 @@ class LossLandscapeWindow(QMainWindow):
         """Return to the main window."""
         self.hide()  # Close the current window
         self.main_window.show()  # Show the main window
+    
+    def show_error(self, ErrorMessage):
+            error_dialog = QMessageBox(self)
+            error_dialog.setIcon(QMessageBox.Critical)
+            error_dialog.setWindowTitle("Error")
+            error_dialog.setText("An error has occurred!")
+            error_dialog.setInformativeText(ErrorMessage)
+            error_dialog.setStandardButtons(QMessageBox.Ok)
+            error_dialog.exec_()  # Display the error dialog
 
 
 class PlotWindow(QDialog):
