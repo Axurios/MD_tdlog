@@ -21,6 +21,12 @@ in the "Select MD data file" you should put "NP_1200K_desc.pkl"
 and in the "Select Theta file" : "theta.pkl" preferably or "theta_md.pkl"  
 (like in main_interface.png) 
 
+in the "descriptor name" choose (once data are loaded) : *milady-descriptors*
+"forces" : *forces* (not really original)
+"descriptor gradient name" : *milady-descriptors-forces*
+follow the previous image if needed
+
+
 ## What does it do ?
 
 The applications was designed for researchers from the CEA Paris-Saclay working on the prediction 
@@ -135,4 +141,6 @@ and explicitly :
 $$
 \theta_{f}^{*} = \left( \mathbb{E}_{p(\mathbf{x})} \left[ G(\mathbf{x})^{T} G(\mathbf{x}) \right] \right)^{-1} \left( \mathbb{E}_{p(\mathbf{x})} \left[ G(\mathbf{x})^{T} \nabla_{\mathbf{x}} U(\mathbf{x}) \right] \right)
 $$
+
+we then use this new set of parameters to compute the new predicted energies (and the cumulative distribution function associated)
 
