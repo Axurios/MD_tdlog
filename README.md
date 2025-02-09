@@ -97,11 +97,14 @@ Z_{\boldsymbol{\theta}} = \int e^{-\beta U_{\boldsymbol{\theta}}(\mathbf{x})} \,
 $$
 
 Our goal is thus to find the optimal parameter $$\theta_{f}$$ that minimizes the Fisher divergence between $$p(\mathbf{x})$$ and $$p_{\theta_{f}}(\mathbf{x})$$.
-Let's consider a D-dimensional linear machine learning model based on some descriptor functions and 
+Let's consider a D-dimensional linear machine learning model based on some descriptor functions and
+
 $$
 D(\mathbf{x}): \mathbb{R}^{3N} \rightarrow \mathbb{R}^D
-$$ 
-for which the energy can be written as: 
+$$
+
+for which the energy can be written as:
+
 $$
 U_{\theta_{f}}(x) = \theta_{f}^{T} D(x)
 $$ 
@@ -111,34 +114,45 @@ We aim to find the optimal parameter $$\theta_{f} \in \mathbb{R}^D$$ that minimi
 
 
 The Fisher divergence between $$p(\mathbf{x})$$ and $$p_{\theta_{f}}(\mathbf{x})$$ is:
+
 $$
 F(p, p_{\theta_{f}}) = 1/2 \int p(\mathbf{x}) || \nabla_{\mathbf{x}} \log p(\mathbf{x}) - \nabla_{\mathbf{x}} \log p_{\theta_{f}}(\mathbf{x}) ||^{2} d\mathbf{x}
 $$
 
 
-In the case of the Boltzmann distribution, the gradient of the log-density 
+In the case of the Boltzmann distribution, the gradient of the log-density
+
 $$
 \nabla_{\mathbf{x}} \log  p(\mathbf{x}) = -\beta \nabla_{\mathbf{x}} U(\mathbf{x})
 $$
+
 somehow accessible for the points in the database as long as they are the atomic forces. 
 Since $$ - \nabla_{\mathbf{x}} U(\mathbf{x})$$ the atomic forces can be computed, we can reformulate the score matching objective to avoid computing the Laplacian. By part integration we can easily obtain: 
 
 $$
 J(\theta_{f}) = \mathbb{E}_{p(\mathbf{x})} \left[ \frac{1}{2} \left\| s_{\theta_{f}}(\mathbf{x}) \right\|^2 - s_{\theta_{f}}(\mathbf{x})^\top \nabla_{\mathbf{x}} \log p(\mathbf{x}) \right]
 $$
-Again we can derive exactly the same form 
+
+Again we can derive exactly the same form
+
 $$   
    J(\theta_{f}) = \frac{1}{2} \theta_{f}^{T} T \theta_{f} + \theta_{f}^{T}  c
 $$
+
 T is such $$T = \frac{\beta^2}{M} \sum_{m} G(x_{m})^{T} G(x_{m})$$  and c is such :
+
 $$
 c =  \mathbb{E}_{p(\mathbf{x})} \left[ \beta^2 G(\mathbf{x})^{T} \nabla_{x} U(x) \right] 
 $$
+
 c represents the expected inner product between the gradients of  D(x) and the force field $$\nabla_{x} U(x)$$. The optimal $$\theta_{f}$$ is formally
+
 $$
    \theta_{f}^{*} = T^{-1} c
 $$ 
+
 and explicitly : 
+
 $$
 \theta_{f}^{*} = \left( \mathbb{E}_{p(\mathbf{x})} \left[ G(\mathbf{x})^{T} G(\mathbf{x}) \right] \right)^{-1} \left( \mathbb{E}_{p(\mathbf{x})} \left[ G(\mathbf{x})^{T} \nabla_{\mathbf{x}} U(\mathbf{x}) \right] \right)
 $$
