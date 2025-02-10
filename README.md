@@ -2,7 +2,23 @@
 ## How to use it ?
 **run the main.py**
 
-you can see our presentation as a markdown file directly on github by clicking *presentation.md* it is part of the readme as it gives an overview of mostly what has been done
+Create a virtual environment and activate it
+
+(on Debian) :
+
+```
+virtualenv .venv 
+source .venv/bin/activate
+```
+
+And open the GUI by :
+
+```
+python3 -m main
+```
+
+
+You can see our presentation as a markdown file directly on github by clicking *presentation.md* it is part of the readme as it gives an overview of mostly what has been done
 or in vscode right-click on the "diapo.md" file and "Open Preview" to view our presentation of this project.
 (might need marp extension on vscode)
 
