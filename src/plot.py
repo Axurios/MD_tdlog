@@ -53,6 +53,8 @@ def CDF_fisher(Data : DataHolder, descstr : str,  gradstr : str, forcestr : str,
         data = np.dot(fishertheta,np.array(Data.md_data[k]['atoms'][-1].get_array(descstr)).transpose())
         sorted,cdf_data = cdf(data)
         ax.plot(sorted, cdf_data)
+    ax.set_title('CDF of Fisher-Transformed Data')
+    # ax.legend()
     return fig
 
 

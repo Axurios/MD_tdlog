@@ -32,6 +32,7 @@ class MSELoss(Module):
     def __init__(self, num_classes=10):
         super(MSELoss, self).__init__()
         self.num_classes = num_classes
+        self.name = "MSE"
 
     def make_target(self, x, labels):
         """
@@ -67,6 +68,7 @@ class MAELoss(Module):
     def __init__(self, num_classes=10):
         super(MAELoss, self).__init__()
         self.num_classes = num_classes
+        self.name = "MAE"
 
     def make_target(self, x, labels):
         """
@@ -109,6 +111,7 @@ class CrossEntropyLoss(Module):
     def __init__(self, num_classes=10):
         super(CrossEntropyLoss, self).__init__()
         self.num_classes = num_classes
+        self.name = "Cross Entropy"
 
     def make_target(self, x, labels):
         """
@@ -184,6 +187,7 @@ class HingeLoss(Module):
     def __init__(self, num_classes=10):
         super(HingeLoss, self).__init__()
         self.num_classes = num_classes
+        self.name = "Hinge Loss"
 
     def make_target(self, x, labels):
         """
@@ -313,6 +317,7 @@ class SimpleMLP(Module):
         self.fc1 = Linear(in_dimension, hidden_dimension)
         self.relu1 = ReLU()
         self.fc2 = Linear(hidden_dimension, num_classes)
+        self.name = "SimpleMLP"
 
     def forward(self, x):
         x = self.fc1.forward(x)
@@ -370,6 +375,7 @@ class DoubleMLP(Module):
         self.fc2 = Linear(hidden_dimension_1, hidden_dimension_2)
         self.relu2 = ReLU()
         self.fc3 = Linear(hidden_dimension_2, num_classes)
+        self.name = "DoubleMLP"
 
     def forward(self, x):
         x = self.fc1.forward(x)
