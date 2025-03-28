@@ -52,7 +52,7 @@ def prepare_datasets(key, num_train, num_valid):
     choice = np.asarray(jax.random.choice(key, num_data, shape=(num_draw,), replace=False))
     train_choice = choice[:num_train]
     valid_choice = choice[num_train:]
-    mean_energy = np.mean(dataset['E'][train_choice])
+    mean_energy = np.mean(dataset['E'][train_choice]) 
     train_data = dict(
         energy=jnp.asarray(dataset['E'][train_choice, 0] - mean_energy)*kcal_to_ev,
         forces=jnp.asarray(dataset['F'][train_choice])*kcal_to_ev,
@@ -74,7 +74,7 @@ def prepare_calibration_dataset(filename, mean_energy, num_calib=200):
     calib_data = dict(
         energy=jnp.asarray(dataset['E'][-num_calib:, 0] - mean_energy)*kcal_to_ev,
         forces=jnp.asarray(dataset['F'][-num_calib:])*kcal_to_ev,
-        atomic_numbers=jnp.asarray(dataset['z']),
+        atomic_numbers=jnp.asarray(dataset['z'][-num_calib:]),
         positions=jnp.asarray(dataset['R'][-num_calib:])
     )
     return calib_data
@@ -132,7 +132,7 @@ class MessagePassingModel(nn.Module):
 
         # 5. Predict atomic energies.
         element_bias = self.param('element_bias', lambda rng, shape: jnp.zeros(shape), (self.max_atomic_number+1))
-        atomic_energies = nn.Dense(1, use_bias=False, kernel_init=jax.nn.initializers.zeros)(x)
+        atomic_energies = nn.Dense(1, use_bias=False, kernel_init=jax.nn.initializers.zeros,  name="AAAAAAAAA")(x)
         atomic_energies = jnp.squeeze(atomic_energies, axis=(-1, -2, -3))
         # //////////////////////////////////////////////////////////////////////////////////////////////////////////
         atomic_energies += element_bias[atomic_numbers] 
@@ -446,9 +446,9 @@ def calibrated_energy(params, theta, model, atomic_numbers, positions, dst_idx, 
     if element_bias is not None and atomic_numbers is not None:
         print("okokokokok")
         atomic_biases = element_bias[atomic_numbers]
-        print(atomic_biases, "biais")
+        # print(atomic_biases, "biais")
         energy_from_bias = jax.ops.segment_sum(atomic_biases, segment_ids=batch_segments, num_segments=batch_size)
-        print(energy_from_bias, "energy from biais")
+        # print(energy_from_bias, "energy from biais")
         return energy_from_descriptor + energy_from_bias
     
     return energy_from_descriptor
@@ -511,12 +511,10 @@ def calibrated_forces(params, theta, model, atomic_numbers, positions, dst_idx, 
 
 
 
-
-
 # --- Main execution ---
 data_key, train_key = jax.random.split(jax.random.PRNGKey(0), 2)
-train_data, valid_data, mean_energy = prepare_datasets(data_key, num_train=num_train, num_valid=num_valid)
-print(mean_energy*kcal_to_ev)
+train_data, valid_data, mean_energy = prepare_datasets(data_key, num_train=num_train, num_valid=num_valid) 
+print(mean_energy) # mean energy was wrongly multipleid
 # Train the initial (uncalibrated) message-passing model.
 message_passing_model = MessagePassingModel(
     features=features,
@@ -559,10 +557,27 @@ print("Bare model parameters saved.")
 
 # Prepare calibration dataset from the last 200 configurations of the full dataset.
 # or we should put other MD dataset here ... 
-calib_data = prepare_calibration_dataset(filename, mean_energy=mean_energy, num_calib=200)
+calib_data = prepare_calibration_dataset(filename, mean_energy=mean_energy, num_calib=400)
 # Calibrate using the calibration dataset.
-theta_star = calibrate_model(params, message_passing_model, calib_data, beta=beta)
 
+theta_basic = params["params"]["AAAAAAAAA"]['kernel'].flatten()
+# print(params["params"]["AAAAAAAAA"])
+print(theta_basic.shape)
+print(theta_basic)
+print("now computing theta basic")
+
+
+print("calibration done, now computing theta star")
+theta_star = calibrate_model(params, message_passing_model, calib_data, beta=beta)
+print(len(theta_star))
+# theta_basic = extract_theta(message_passing_model, params)
+# print(len(theta_basic))
+
+differences = theta_star - theta_basic
+
+# Estimate the constant by averaging the differences
+estimated_constant = np.mean(differences)
+print(estimated_constant)
 
 
 # Save calibrated model parameters as a dictionary.
@@ -606,6 +621,12 @@ print("Calibrated Forces:", calib_forces)
 
 
 
+basic_energy = calibrated_energy(params, theta_basic, message_passing_model, atomic_numbers, positions, dst_idx, src_idx, batch_segments, batch_size)
+basic_forces = calibrated_forces(params, theta_basic, message_passing_model, atomic_numbers, positions, dst_idx, src_idx, batch_segments, batch_size)
+print("\n=== Basic Model Predictions ===")
+print("Calibrated Energy:", basic_energy)
+print("Calibrated Forces:", basic_forces)
+
 
 # mean_energy = np.mean(dataset['E'][train_choice])
 # # Energy is offset by mean_energy and converted to eV
@@ -623,3 +644,92 @@ print("Calibrated Forces:", calib_forces)
 #     else:
 #         return desc_type @ theta["coef"] + theta["intercept"]
 
+
+
+def lerping(theta1, theta2, t):
+    return ((1-t)*theta1 + t*theta2)
+
+def n_lerping(theta1, theta2, n):
+    t_values = np.linspace(0, 1, n)
+    return theta1*(1-t_values[:, None]) + theta2*t_values[:, None]
+
+
+
+
+# now the theta projected on having the same energy value.
+# here only takes 1 energy value ?
+
+
+
+## to make it compatible with previous run files, just change this
+
+import copy
+params_fisher = copy.deepcopy(params)
+params_fisher["params"]["AAAAAAAAA"]['kernel'] = theta_star.reshape(-1, 1)
+# that's it
+fisher_energy, fisher_forces = message_passing_model.apply(
+    params_fisher,
+    atomic_numbers,
+    positions,
+    dst_idx,
+    src_idx,
+    batch_segments,
+    batch_size
+)
+
+print("\n=== New fisher (calibrated) Model Predictions ===")
+print("Energy:", fisher_energy)
+print("Forces:", fisher_forces)
+## remove the .flatten() effect with the reshape (32,) into (32,1)
+
+
+
+
+
+
+
+
+
+
+
+
+
+## now have to do the ker projection.
+# theta_projected = theta_1 + P_ker.(theta2 - theta1) # avec P_ker la matrix de projection dans le ker de D(x)
+
+
+
+
+
+
+# Use the first sample from the validation set.
+sample = valid_data
+num_atoms = sample['positions'].shape[1]  # (num_samples, num_atoms, 3)
+batch_segments = jnp.zeros(num_atoms, dtype=jnp.int32)
+batch_size = 1
+dst_idx, src_idx = e3x.ops.sparse_pairwise_indices(num_atoms)
+atomic_numbers = sample['atomic_numbers']
+positions = sample['positions'][1]  # first molecule
+
+# Uncalibrated model predictions.
+initial_energy, initial_forces = message_passing_model.apply(
+    params,
+    atomic_numbers,
+    positions,
+    dst_idx,
+    src_idx,
+    batch_segments,
+    batch_size
+)
+
+# Calibrated model predictions.
+calib_energy = calibrated_energy(params, theta_star, message_passing_model, atomic_numbers, positions, dst_idx, src_idx, batch_segments, batch_size)
+calib_forces = calibrated_forces(params, theta_star, message_passing_model, atomic_numbers, positions, dst_idx, src_idx, batch_segments, batch_size)
+
+print("\n=== Uncalibrated Model Predictions ===")
+print("Energy:", initial_energy)
+print("Forces:", initial_forces)
+
+print("\n=== Calibrated Model Predictions ===")
+print("Calibrated Energy:", calib_energy)
+print("Calibrated Forces:", calib_forces)
