@@ -132,7 +132,7 @@ class MessagePassingModel(nn.Module):
 
         # 5. Predict atomic energies.
         element_bias = self.param('element_bias', lambda rng, shape: jnp.zeros(shape), (self.max_atomic_number+1))
-        atomic_energies = nn.Dense(1, use_bias=False, kernel_init=jax.nn.initializers.zeros,  name="AAAAAAAAA")(x)
+        atomic_energies = nn.Dense(1, use_bias=False, kernel_init=jax.nn.initializers.zeros, name="theta")(x)
         atomic_energies = jnp.squeeze(atomic_energies, axis=(-1, -2, -3))
         # //////////////////////////////////////////////////////////////////////////////////////////////////////////
         atomic_energies += element_bias[atomic_numbers] 
@@ -452,46 +452,7 @@ def calibrated_energy(params, theta, model, atomic_numbers, positions, dst_idx, 
         return energy_from_descriptor + energy_from_bias
     
     return energy_from_descriptor
-    return energy_from_descriptor + energy_from_bias
 
-
-
-
-
-# def calibrated_energy(params, theta, model, atomic_numbers, positions, dst_idx, src_idx, batch_segments, batch_size):
-#     descriptor = model.apply(
-#         params,
-#         atomic_numbers,
-#         positions,
-#         dst_idx,
-#         src_idx,
-#         batch_segments,
-#         batch_size,
-#         method=model.extract_descriptor
-#     )
-#     # ////////////////////////////////////////////////////////////////////////////////////////////////////////
-#     element_bias = params['params']['element_bias']
-    
-#     # Apply element bias to each atom and compute the energy
-#     atomic_biases = element_bias[atomic_numbers]
-#     print(atomic_biases)
-#     energy_from_bias = jax.ops.segment_sum(atomic_biases, segment_ids=batch_segments, num_segments=batch_size)
-#     print(energy_from_bias)
-    
-#     # Compute energy from the descriptor and theta
-#     energy_from_descriptor = jnp.sum(descriptor * theta, axis=-1)
-#     print(energy_from_descriptor)
-    
-#     # Total calibrated energy
-#     energy_calibrated = energy_from_descriptor + energy_from_bias
-    
-#     return energy_calibrated
-#     # print(model.max_atomic_number)
-#     # print( model.param('element_bias', lambda rng, shape: jnp.zeros(shape), (model.max_atomic_number+1)))
-#     # element_bias = model.param('element_bias', lambda rng, shape: jnp.zeros(shape), (model.max_atomic_number+1))
-#     # energy += element_bias[atomic_numbers] 
-#     # energy_calibrated = jnp.dot(descriptor, theta) + element_bias[atomic_numbers]  # += element_bias[atomic_numbers]#......... + theta["intercept"]
-#     # return energy_calibrated
 
 
 def calibrated_forces(params, theta, model, atomic_numbers, positions, dst_idx, src_idx, batch_segments, batch_size):
@@ -499,6 +460,14 @@ def calibrated_forces(params, theta, model, atomic_numbers, positions, dst_idx, 
         return calibrated_energy(params, theta, model, atomic_numbers, pos, dst_idx, src_idx, batch_segments, batch_size).sum()
     forces = -jax.grad(energy_fn)(positions)
     return forces
+
+
+
+
+
+
+
+
 
 
 
@@ -536,7 +505,14 @@ params = train_model(
 
 # Save bare (uncalibrated) model parameters.
 import flax
-with open("bare_model_params.bin", "wb") as f:
+# model_dir = "Model"
+# os.makedirs(model_dir, exist_ok=True)
+
+# serialized_params = flax.serialization.to_bytes(params)
+# # params_file_path = os.path.join(model_dir, "model_params.bin")
+# with open(params_file_path, "wb") as f:
+#     f.write(serialized_params)
+with open("before_model_params.bin", "wb") as f:
     f.write(flax.serialization.to_bytes(params))
 print("Bare model parameters saved.")
 
@@ -557,11 +533,11 @@ print("Bare model parameters saved.")
 
 # Prepare calibration dataset from the last 200 configurations of the full dataset.
 # or we should put other MD dataset here ... 
-calib_data = prepare_calibration_dataset(filename, mean_energy=mean_energy, num_calib=400)
+calib_data = prepare_calibration_dataset(filename, mean_energy=mean_energy, num_calib=100)
 # Calibrate using the calibration dataset.
 
-theta_basic = params["params"]["AAAAAAAAA"]['kernel'].flatten()
-# print(params["params"]["AAAAAAAAA"])
+theta_basic = params["params"]["theta"]['kernel'].flatten()
+# print(params["params"]["'Dense_6'"])
 print(theta_basic.shape)
 print(theta_basic)
 print("now computing theta basic")
@@ -628,21 +604,7 @@ print("Calibrated Energy:", basic_energy)
 print("Calibrated Forces:", basic_forces)
 
 
-# mean_energy = np.mean(dataset['E'][train_choice])
-# # Energy is offset by mean_energy and converted to eV
-# energy=jnp.asarray(dataset['E'][train_choice, 0] - mean_energy)*kcal_to_ev
 
-# from typing import TypedDict
-# class Theta(TypedDict):
-#     """Structure du dictionnaire de \theta"""
-#     coef: np.ndarray
-#     intercept: float
-
-# def DotProductDesc(theta: Theta, desc_type: np.ndarray) -> np.ndarray:
-#     if len(desc_type.shape) > 2:
-#         return np.tensordot(theta["coef"], desc_type, axes=(0, 2))
-#     else:
-#         return desc_type @ theta["coef"] + theta["intercept"]
 
 
 
@@ -665,7 +627,7 @@ def n_lerping(theta1, theta2, n):
 
 import copy
 params_fisher = copy.deepcopy(params)
-params_fisher["params"]["AAAAAAAAA"]['kernel'] = theta_star.reshape(-1, 1)
+params_fisher["params"]["theta"]['kernel'] = theta_star.reshape(-1, 1)
 # that's it
 fisher_energy, fisher_forces = message_passing_model.apply(
     params_fisher,
@@ -678,11 +640,14 @@ fisher_energy, fisher_forces = message_passing_model.apply(
 )
 
 print("\n=== New fisher (calibrated) Model Predictions ===")
-print("Energy:", fisher_energy)
-print("Forces:", fisher_forces)
+print("Energy:", fisher_energy) ; print("Forces:", fisher_forces)
 ## remove the .flatten() effect with the reshape (32,) into (32,1)
 
 
+import flax
+with open("fisher_model_params.bin", "wb") as f:
+    f.write(flax.serialization.to_bytes(params_fisher))
+print("Bare model parameters saved.")
 
 
 
@@ -727,9 +692,7 @@ calib_energy = calibrated_energy(params, theta_star, message_passing_model, atom
 calib_forces = calibrated_forces(params, theta_star, message_passing_model, atomic_numbers, positions, dst_idx, src_idx, batch_segments, batch_size)
 
 print("\n=== Uncalibrated Model Predictions ===")
-print("Energy:", initial_energy)
-print("Forces:", initial_forces)
+print("Energy:", initial_energy) ; print("Forces:", initial_forces)
 
 print("\n=== Calibrated Model Predictions ===")
-print("Calibrated Energy:", calib_energy)
-print("Calibrated Forces:", calib_forces)
+print("Calibrated Energy:", calib_energy) ; print("Calibrated Forces:", calib_forces)
