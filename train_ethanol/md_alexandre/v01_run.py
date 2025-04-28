@@ -346,30 +346,19 @@ dummy_input = dict(
     src_idx=src_idx,
 )
 
-with open('before_model_params.bin', 'rb') as f:
-    serialized_data = f.read()
-
-dummy_params = message_passing_model.init(key, **dummy_input)
-params = flax.serialization.from_bytes(dummy_params, serialized_data)
 
 
 dummy_params = message_passing_model.init(key, **dummy_input)
 with open('before_model_params.bin', 'rb') as f:
      serialized_params = f.read()
-
-print("ko")
 default_params = flax.serialization.from_bytes(dummy_params, serialized_params)  
 # print(params)  
 
 
 with open('fisher_model_params.bin', 'rb') as f:
     fisher_serialized_params = f.read()
-
 params = flax.serialization.from_bytes(dummy_params, fisher_serialized_params)  
 # print(params)
-
-
-# In[28]:
 
 
 
@@ -382,30 +371,7 @@ def evaluate_energies_and_forces(atomic_numbers, positions, dst_idx, src_idx):
         src_idx=jnp.asarray(src_idx),
     )
 
-###def evaluate_energies_and_forces(atomic_numbers, positions, dst_idx, src_idx):
-###    # Convert inputs to JAX arrays if they aren't already
-###    atomic_numbers_jax = jax.numpy.array(atomic_numbers)
-###    positions_jax = jax.numpy.array(positions)
-###    dst_idx_jax = jax.numpy.array(dst_idx)
-###    src_idx_jax = jax.numpy.array(src_idx)
-###
-###    # JIT-compiled inner function
-###    @jax.jit
-###    def compute(atomic_numbers, positions, dst_idx, src_idx):
-###        return message_passing_model.apply(params,
-###            atomic_numbers=atomic_numbers,
-###            positions=positions,
-###            dst_idx=dst_idx,
-###            src_idx=src_idx,
-###        )
-###
-###    # Call the JIT-compiled function
-###    energy, forces = compute(atomic_numbers_jax, positions_jax, dst_idx_jax, src_idx_jax)
-###
-###    # Ensure explicit conversion from JAX arrays to NumPy arrays
-###    return energy.block_until_ready().to_numpy(), forces.block_until_ready().to_numpy()
  
-
 
 class MessagePassingCalculator(ase_calc.Calculator):
     implemented_properties = ["energy", "forces"]
