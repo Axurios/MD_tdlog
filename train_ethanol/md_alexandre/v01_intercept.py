@@ -69,7 +69,7 @@ def prepare_datasets(key, num_train, num_valid):
 
     # Convert mean to JAX (if you want full device consistency)
     mean_energy = jnp.mean(jnp.asarray(dataset['E'][train_choice]))
-
+    #mean_energy= mean_energy - mean_energy 
     train_data = dict(
         energy=jnp.asarray(dataset['E'][train_choice, 0] - mean_energy) * kcal_to_ev,
         forces=jnp.asarray(dataset['F'][train_choice]) * kcal_to_ev,
@@ -151,7 +151,7 @@ class MessagePassingModel(nn.Module):
         #element_bias = self.param('element_bias', lambda rng, shape: jnp.zeros(shape), (self.max_atomic_number+1))
         atomic_energies = nn.Dense(1, use_bias=False, kernel_init=jax.nn.initializers.zeros, name="theta")(x)
         atomic_energies = jnp.squeeze(atomic_energies, axis=(-1, -2, -3))
-        atomic_energies += element_bias[atomic_numbers]
+        #atomic_energies += element_bias[atomic_numbers]
         #atomic_energies += jnp.take(element_bias, atomic_numbers, axis=0)
 
         # 6. Sum to total energy using modern API.
@@ -264,9 +264,39 @@ class MessagePassingModel(nn.Module):
         # ////////////////////////////////////////////////////////////////////////////////////////////////////////
         # element_bias = self.param('element_bias', lambda rng, shape: jnp.zeros(shape), (self.max_atomic_number+1))
         # energy += element_bias[atomic_numbers] 
-        return energy, forces
+        # return energy, forces
 
+# ———————— vectorized per‐sample calibration snippet ————————
 
+def one_calib(params, model, pos, force, atomic_numbers, beta):
+    # build per‐sample segment indices
+    num_atoms = pos.shape[0]
+    batch_segments = jnp.zeros(num_atoms, dtype=jnp.int32)
+    dst_idx, src_idx = e3x.ops.sparse_pairwise_indices(num_atoms)
+
+    # extract descriptor + gradient for this one snapshot
+    descriptor, G = model.apply(
+        params,
+        atomic_numbers,
+        pos,
+        dst_idx,
+        src_idx,
+        batch_segments,
+        1,
+        method=model.extract_descriptor_and_gradient
+    )
+
+    f = -force.reshape(-1)
+    T = beta**2 * (G @ G.T)
+    c = beta**2 * (G @ f)
+    return T, c
+
+# vmap over all calibration samples in one go:
+v_one = jax.vmap(
+    one_calib,
+    in_axes=(None, None, 0, 0, None, None),
+    out_axes=(0, 0),
+)
 
 # --- Batch preparation, loss, and training functions ---
 def prepare_batches(key, data, batch_size):
@@ -380,72 +410,142 @@ def eval_step(model_apply, batch, batch_size, forces_weight, params):
     return loss, energy_mae, forces_mae
 
 
-def train_model(key, model, train_data, valid_data, num_epochs, learning_rate, forces_weight, batch_size):
+
+#def train_model(key, model, train_data, valid_data, num_epochs, learning_rate, forces_weight, batch_size):
+#    key, init_key = jax.random.split(key)
+#    optimizer = optax.adam(learning_rate)
+#
+#    # Assure-toi que tout est bien sur GPU
+#    atomic_numbers = jnp.asarray(train_data['atomic_numbers'])
+#    positions = jnp.asarray(train_data['positions'][0])
+#    dst_idx, src_idx = e3x.ops.sparse_pairwise_indices(len(atomic_numbers))
+#
+#    # Initialisation GPU-safe
+#    params = model.init(init_key,
+#                        atomic_numbers=atomic_numbers,
+#                        positions=positions,
+#                        dst_idx=dst_idx,
+#                        src_idx=src_idx)
+#    opt_state = optimizer.init(params)
+#
+#    # Validation pré-préparée (optionnel mais ok)
+#    key, shuffle_key = jax.random.split(key)
+#    valid_batches = prepare_batches(shuffle_key, valid_data, batch_size)
+#
+#    for epoch in range(1, num_epochs + 1):
+#        key, shuffle_key = jax.random.split(key)
+#        train_batches = prepare_batches(shuffle_key, train_data, batch_size)
+#
+#        train_loss = 0.0
+#        train_energy_mae = 0.0
+#        train_forces_mae = 0.0
+#
+#        for i, batch in enumerate(train_batches):
+#            params, opt_state, loss, energy_mae, forces_mae = train_step(
+#                model_apply=model.apply,
+#                optimizer_update=optimizer.update,
+#                batch=batch,
+#                batch_size=batch_size,
+#                forces_weight=forces_weight,
+#                opt_state=opt_state,
+#                params=params
+#            )
+#            train_loss += (loss - train_loss) / (i+1)
+#            train_energy_mae += (energy_mae - train_energy_mae) / (i+1)
+#            train_forces_mae += (forces_mae - train_forces_mae) / (i+1)
+#            
+#            
+#            
+#
+#        valid_loss = 0.0
+#        valid_energy_mae = 0.0
+#        valid_forces_mae = 0.0
+#
+#        for i, batch in enumerate(valid_batches):
+#            loss, energy_mae, forces_mae = eval_step(
+#                model_apply=model.apply,
+#                batch=batch,
+#                batch_size=batch_size,
+#                forces_weight=forces_weight,
+#                params=params
+#            )
+#            valid_loss += (loss - valid_loss) / (i+1)
+#            valid_energy_mae += (energy_mae - valid_energy_mae) / (i+1)
+#            valid_forces_mae += (forces_mae - valid_forces_mae) / (i+1)
+#
+#        if epoch % 10 == 0:
+#            print(f"epoch: {epoch: 3d}    train loss: {train_loss:8.3f}   valid loss: {valid_loss:8.3f}")
+#            print(f"    energy mae: {train_energy_mae:8.3f}   valid energy mae: {valid_energy_mae:8.3f}")
+#            print(f"    forces mae: {train_forces_mae:8.3f}   valid forces mae: {valid_forces_mae:8.3f}")
+#
+#    return params
+def train_model(key, model, train_data, valid_data,
+                num_epochs, learning_rate, forces_weight, batch_size):
     key, init_key = jax.random.split(key)
     optimizer = optax.adam(learning_rate)
 
-    # Assure-toi que tout est bien sur GPU
+    # GPU‐safe init (same as before) …
     atomic_numbers = jnp.asarray(train_data['atomic_numbers'])
-    positions = jnp.asarray(train_data['positions'][0])
+    positions       = jnp.asarray(train_data['positions'][0])
     dst_idx, src_idx = e3x.ops.sparse_pairwise_indices(len(atomic_numbers))
-
-    # Initialisation GPU-safe
-    params = model.init(init_key,
-                        atomic_numbers=atomic_numbers,
-                        positions=positions,
-                        dst_idx=dst_idx,
-                        src_idx=src_idx)
+    params   = model.init(init_key, atomic_numbers, positions, dst_idx, src_idx)
     opt_state = optimizer.init(params)
 
-    # Validation pré-préparée (optionnel mais ok)
+    # Pre‐compute validation batches once (same as before) …
     key, shuffle_key = jax.random.split(key)
     valid_batches = prepare_batches(shuffle_key, valid_data, batch_size)
 
+    # ——— Define epoch_step inside so it “sees” model & optimizer ———
+    def epoch_step(carry, batch):
+        params, opt_state = carry
+        params, opt_state, loss, _, _ = train_step(
+            model_apply     = model.apply,
+            optimizer_update= optimizer.update,
+            batch           = batch,
+            batch_size      = batch_size,
+            forces_weight   = forces_weight,
+            opt_state       = opt_state,
+            params          = params
+        )
+        return (params, opt_state), loss
+
+    # ——— jit‐compile the scan over your list of batches ———
+    @jax.jit
+    def run_epoch(params, opt_state, batches):
+        (params, opt_state), losses = jax.lax.scan(
+            epoch_step,
+            (params, opt_state),
+            batches
+        )
+        return params, opt_state, losses.mean()
+
+    # ——— Main training loop ———
     for epoch in range(1, num_epochs + 1):
         key, shuffle_key = jax.random.split(key)
         train_batches = prepare_batches(shuffle_key, train_data, batch_size)
 
-        train_loss = 0.0
-        train_energy_mae = 0.0
-        train_forces_mae = 0.0
+        # stack list-of-dicts → dict-of-arrays along leading axis
+        train_batches = jax.tree_util.tree_map(lambda *xs: jnp.stack(xs), *train_batches)
 
-        for i, batch in enumerate(train_batches):
-            params, opt_state, loss, energy_mae, forces_mae = train_step(
-                model_apply=model.apply,
-                optimizer_update=optimizer.update,
-                batch=batch,
-                batch_size=batch_size,
-                forces_weight=forces_weight,
-                opt_state=opt_state,
-                params=params
-            )
-            train_loss += (loss - train_loss) / (i+1)
-            train_energy_mae += (energy_mae - train_energy_mae) / (i+1)
-            train_forces_mae += (forces_mae - train_forces_mae) / (i+1)
-            
-            
-            
+        # Run the entire epoch in one JIT’d scan
+        params, opt_state, train_loss = run_epoch(params, opt_state, train_batches)
 
-        valid_loss = 0.0
-        valid_energy_mae = 0.0
-        valid_forces_mae = 0.0
-
+        # (leave your validation loop unchanged)
+        valid_loss = valid_energy_mae = valid_forces_mae = 0.0
         for i, batch in enumerate(valid_batches):
-            loss, energy_mae, forces_mae = eval_step(
-                model_apply=model.apply,
-                batch=batch,
-                batch_size=batch_size,
-                forces_weight=forces_weight,
-                params=params
+            loss, e_mae, f_mae = eval_step(
+                model_apply     = model.apply,
+                batch           = batch,
+                batch_size      = batch_size,
+                forces_weight   = forces_weight,
+                params          = params
             )
-            valid_loss += (loss - valid_loss) / (i+1)
-            valid_energy_mae += (energy_mae - valid_energy_mae) / (i+1)
-            valid_forces_mae += (forces_mae - valid_forces_mae) / (i+1)
+            valid_loss       += (loss - valid_loss)/(i+1)
+            valid_energy_mae += (e_mae - valid_energy_mae)/(i+1)
+            valid_forces_mae += (f_mae - valid_forces_mae)/(i+1)
 
         if epoch % 10 == 0:
-            print(f"epoch: {epoch: 3d}    train loss: {train_loss:8.3f}   valid loss: {valid_loss:8.3f}")
-            print(f"    energy mae: {train_energy_mae:8.3f}   valid energy mae: {valid_energy_mae:8.3f}")
-            print(f"    forces mae: {train_forces_mae:8.3f}   valid forces mae: {valid_forces_mae:8.3f}")
+            print(f"epoch {epoch:3d}  train loss {train_loss:.4f}  valid loss {valid_loss:.4f}")
 
     return params
 
@@ -606,8 +706,25 @@ print(f"Initial theta_basic shape: {theta_basic.shape}")
 
 # 6. Run calibration
 print("Running calibration...")
-theta_star = calibrate_model(params, message_passing_model, calib_data, beta=beta)
+#theta_star = calibrate_model(params, message_passing_model, calib_data, beta=beta)
+# --- vectorized calibration call ---
+T_samples, c_samples = v_one(
+    params,
+    message_passing_model,
+    calib_data['positions'],      # shape [n_calib, natoms, 3]
+    calib_data['forces'],         # shape [n_calib, natoms, 3]
+    calib_data['atomic_numbers'], # shape [natoms]
+    beta
+)
+# compute averages and solve
+T_avg = jnp.mean(T_samples, axis=0)
+c_avg = jnp.mean(c_samples, axis=0)
+theta_star = jnp.linalg.solve(T_avg, c_avg)
+print("θ* computed via vmap:", theta_star)
 print(f"Calibration complete. Theta_star size: {len(theta_star)}")
+print("Calibration complete: theta_star =", theta_star)
+
+
 
 # 7. Compare theta_star vs theta_basic
 differences = theta_star - theta_basic
