@@ -483,7 +483,7 @@ def calibrated_forces(params, theta, model, atomic_numbers, positions, dst_idx, 
 # --- Main execution ---
 data_key, train_key = jax.random.split(jax.random.PRNGKey(0), 2)
 train_data, valid_data, mean_energy = prepare_datasets(data_key, num_train=num_train, num_valid=num_valid) 
-print(mean_energy) # mean energy was wrongly multipleid
+## print(mean_energy) # mean energy was wrongly multipleid
 # Train the initial (uncalibrated) message-passing model.
 message_passing_model = MessagePassingModel(
     features=features,
@@ -562,6 +562,17 @@ with open("calibrated_model_params.bin", "wb") as f:
     f.write(flax.serialization.to_bytes(calibrated_params))
 print("Calibrated model parameters saved.")
 
+
+
+
+
+
+
+
+
+
+
+
 # --- Compare Predictions from Uncalibrated and Calibrated Models ---
 # Use the first sample from the validation set.
 sample = valid_data
@@ -571,6 +582,56 @@ batch_size = 1
 dst_idx, src_idx = e3x.ops.sparse_pairwise_indices(num_atoms)
 atomic_numbers = sample['atomic_numbers']
 positions = sample['positions'][0]  # first molecule
+
+
+descriptors = message_passing_model.apply(
+    params,
+    atomic_numbers,
+    positions,
+    dst_idx,
+    src_idx,
+    batch_segments,
+    batch_size,
+    method = MessagePassingModel.extract_descriptor
+)
+
+# matrix_desc = jnp.unsqueeze(descriptors)
+matrix_desc = jnp.squeeze(descriptors.T)
+# print(len(matrix_desc))
+# print(matrix_desc)
+# print(matrix_desc.shape)
+
+new_theta = 0
+diff = theta_star - theta_basic
+U,S, Vh = jnp.linalg.svd(matrix_desc)
+tol = 1e-10
+null_mask = S < tol
+null_space = Vh.T[:, null_mask]
+
+if null_space.shape[1]==0:
+    print("careful")
+    new_theta = theta_basic
+proj = null_space @ (null_space.T @ diff)
+new_theta = theta_basic + proj
+
+print("new theta", new_theta)
+# matrix_desc = jnp.squeeze(descriptors)
+# print(len(matrix_desc))
+# print(matrix_desc)
+# print(matrix_desc.shape)
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 # Uncalibrated model predictions.
 initial_energy, initial_forces = message_passing_model.apply(

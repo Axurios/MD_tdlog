@@ -367,7 +367,7 @@ def calibrated_energy(params, theta, model, atomic_numbers, positions, dst_idx, 
         batch_size,
         method=model.extract_descriptor
     )
-    energy_calibrated = jnp.dot(descriptor, theta)
+    energy_calibrated = jnp.dot(descriptor, theta) #......... + theta["intercept"]
     return energy_calibrated
 
 def calibrated_forces(params, theta, model, atomic_numbers, positions, dst_idx, src_idx, batch_segments, batch_size):
@@ -454,3 +454,17 @@ print("Forces:", initial_forces)
 print("\n=== Calibrated Model Predictions ===")
 print("Calibrated Energy:", calib_energy)
 print("Calibrated Forces:", calib_forces)
+
+
+
+# from typing import TypedDict
+# class Theta(TypedDict):
+#     """Structure du dictionnaire de \theta"""
+#     coef: np.ndarray
+#     intercept: float
+
+# def DotProductDesc(theta: Theta, desc_type: np.ndarray) -> np.ndarray:
+#     if len(desc_type.shape) > 2:
+#         return np.tensordot(theta["coef"], desc_type, axes=(0, 2))
+#     else:
+#         return desc_type @ theta["coef"] + theta["intercept"]
