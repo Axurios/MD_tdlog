@@ -1,0 +1,1 @@
+<TimeOfFailure><features>32</features><max_degree>2</max_degree><num_iterations>3</num_iterations><num_basis_functions>32</num_basis_functions><cutoff>3.0</cutoff><num_train>200</num_train><num_valid>25</num_valid><num_epochs>20</num_epochs><learning_rate>0.01</learning_rate><forces_weight>1.0</forces_weight><batch_size>20</batch_size></TimeOfFailure>
