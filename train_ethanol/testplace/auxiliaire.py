@@ -3,7 +3,7 @@ import shutil
 import numpy as np
 from config_managers import H5Manager, XMLManager
 
-# Define hyperparameters
+# Definit hyperparameters de base
 hyperparams = {
     "features" : 32,
     "max_degree" : 2,
@@ -17,46 +17,6 @@ hyperparams = {
     "forces_weight" : 1.0,
     "batch_size" : 20
 }
-
-# # Choose XML or HDF5 format
-# use_xml = True  # Set to False for HDF5
-# base_dir = os.path.dirname(os.path.abspath(__file__))
-
-# if use_xml:
-#     path = os.path.join(base_dir, "hyperparams.xml")
-#     # path = "hyperparams.xml"
-#     xml_writer = XMLManager(path, mode="writing")
-#     xml_writer.generate_xml(hyperparams)
-# else:
-#     # path = "hyperparams.h5"
-#     path = os.path.join(base_dir, "hyperparams.xml")
-#     h5_writer = H5Manager(path, mode="writing")
-#     h5_writer.add_or_update_data("Hyperparameters", {
-#         key: np.string_(val) if isinstance(val, str) else val
-#         for key, val in hyperparams.items()
-#     })
-#     h5_writer.close()
-
-
-
-
-
-# # Get current script directory
-# base_dir = os.path.dirname(os.path.abspath(__file__))
-
-# # Define source file and target folder
-# inter_file = os.path.join(base_dir, "inter.py")
-# run_file = os.path.join(base_dir, "run.py")
-# target_folder = os.path.join(base_dir, "intercept_backup")
-
-# # Create the folder if it doesn't exist
-# os.makedirs(target_folder, exist_ok=True)
-
-# inter_copy = os.path.join(target_folder, "inter_copy.py")
-# shutil.copy2(inter_file, inter_copy)
-
-# run_copy = os.path.join(target_folder, "run_copy.py")
-# shutil.copy2(run_copy, run_copy)
 
 
 # Abbreviate keys for folder naming
@@ -136,3 +96,53 @@ if __name__ == "__main__":
         "forces_weight" : [1.0],
     }
     run_all_combinations(hyperparam_options, use_xml=True)
+    # will create all possibilities from the cross product space of the hyperparams given
+
+
+
+
+
+
+
+
+
+    
+# # Choose XML or HDF5 format
+# use_xml = True  # Set to False for HDF5
+# base_dir = os.path.dirname(os.path.abspath(__file__))
+
+# if use_xml:
+#     path = os.path.join(base_dir, "hyperparams.xml")
+#     # path = "hyperparams.xml"
+#     xml_writer = XMLManager(path, mode="writing")
+#     xml_writer.generate_xml(hyperparams)
+# else:
+#     # path = "hyperparams.h5"
+#     path = os.path.join(base_dir, "hyperparams.xml")
+#     h5_writer = H5Manager(path, mode="writing")
+#     h5_writer.add_or_update_data("Hyperparameters", {
+#         key: np.string_(val) if isinstance(val, str) else val
+#         for key, val in hyperparams.items()
+#     })
+#     h5_writer.close()
+
+
+
+
+
+# # Get current script directory
+# base_dir = os.path.dirname(os.path.abspath(__file__))
+
+# # Define source file and target folder
+# inter_file = os.path.join(base_dir, "inter.py")
+# run_file = os.path.join(base_dir, "run.py")
+# target_folder = os.path.join(base_dir, "intercept_backup")
+
+# # Create the folder if it doesn't exist
+# os.makedirs(target_folder, exist_ok=True)
+
+# inter_copy = os.path.join(target_folder, "inter_copy.py")
+# shutil.copy2(inter_file, inter_copy)
+
+# run_copy = os.path.join(target_folder, "run_copy.py")
+# shutil.copy2(run_copy, run_copy)

@@ -10,7 +10,7 @@ import flax
 import jax
 import jax.numpy as jnp
 warnings.simplefilter(action='ignore', category=FutureWarning)
-
+from config_managers import H5Manager, XMLManager
 
 
 print("\n=================== JAX DEVICE CHECK ===================")
@@ -43,6 +43,24 @@ num_epochs = 20  # short for testing; increase as needed
 learning_rate = 0.01
 forces_weight = 1.0
 batch_size = 20
+
+
+base_dir = os.path.dirname(os.path.abspath(__file__))
+params_path = os.path.join(base_dir, "hyperparams.xml")
+# print(params_path)
+
+xml_param = XMLManager(params_path, mode='reading')
+# print(xml_param.parse_xml()) 
+for key, value in xml_param.items():
+    # print(f"{key}: {value}")
+    if key in globals():
+        current_type = type(globals()[key])
+        try:
+            globals()[key] = current_type(value)
+        except ValueError:
+            print(f"Warning: Could not cast '{key}' to {current_type}. Skipping.")
+
+
 
 
 

@@ -30,11 +30,40 @@ import functools
 import optax
 import urllib.request
 
+from config_managers import H5Manager, XMLManager
 
 print("\n=================== JAX DEVICE CHECK ===================")
 print("Available devices:", jax.devices())
 print("Default backend:", jax.default_backend())
 print("========================================================\n")
+
+features = 32
+max_degree = 1
+num_iterations = 3
+num_basis_functions = 32 #16
+cutoff = 5.0
+
+base_dir = os.path.dirname(os.path.abspath(__file__))
+params_path = os.path.join(base_dir, "hyperparams.xml")
+# print(params_path)
+
+xml_param = XMLManager(params_path, mode='reading')
+# print(xml_param.parse_xml()) 
+for key, value in xml_param.items():
+    # print(f"{key}: {value}")
+    if key in globals():
+        current_type = type(globals()[key])
+        try:
+            globals()[key] = current_type(value)
+        except ValueError:
+            print(f"Warning: Could not cast '{key}' to {current_type}. Skipping.")
+
+
+
+
+
+
+
 
 def mean_squared_loss(energy_prediction, energy_target, forces_prediction, forces_target, forces_weight):
   energy_loss = jnp.mean(optax.l2_loss(energy_prediction, energy_target))
@@ -239,12 +268,15 @@ def eval_step(model_apply, batch, batch_size, forces_weight, params):
 
 os.system('pwd')
 os.system('ls -ltr')
-# Model hyperparameters.
-features = 32
-max_degree = 1
-num_iterations = 3
-num_basis_functions = 32 #16
-cutoff = 5.0
+# # Model hyperparameters. defined above already
+# features = 32
+# max_degree = 1
+# num_iterations = 3
+# num_basis_functions = 32 #16
+# cutoff = 5.0
+
+
+
 # Training hyperparameters.
 num_train = 900
 num_valid = 100
@@ -311,11 +343,11 @@ msgpack_numpy.patch()  # this allows msgpack to handle np arrays
 
 
 
-features = 32
-max_degree = 2
-num_iterations = 3
-num_basis_functions = 32 #16
-cutoff = 5.0
+# features = 32
+# max_degree = 2
+# num_iterations = 3
+# num_basis_functions = 32 #16
+# cutoff = 5.0
 
 # Re-initialize the model exactly as you did before training
 message_passing_model = MessagePassingModel(
