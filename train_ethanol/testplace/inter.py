@@ -11,12 +11,18 @@ import jax
 import jax.numpy as jnp
 warnings.simplefilter(action='ignore', category=FutureWarning)
 from config_managers import H5Manager, XMLManager
-
+import copy
 
 print("\n=================== JAX DEVICE CHECK ===================")
 print("Available devices:", jax.devices())
 print("Default backend:", jax.default_backend())
 print("========================================================\n")
+
+
+results = {}
+results_path = './result.xml'
+
+results["device"] = jax.devices()
 
 ## --- Environment setup ---
 #new_paths = "/gpfslocalsup/pub/anaconda-py3/2023.09/condabin:/gpfslocalsys/cuda/12.2.0/samples:/gpfslocalsys/cuda/12.2.0/nvvm/bin:/gpfslocalsys/cuda/12.2.0/bin:/gpfslocalsup/spack_soft/environment-modules/4.3.1/gcc-4.8.5-ism7cdy4xverxywj27jvjstqwk5oxe2v/bin:/opt/clmgr/sbin:/opt/clmgr/bin:/opt/sgi/sbin:/opt/sgi/bin:/usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/opt/c3/bin:/usr/lpp/mmfs/bin:/sbin:/bin:/gpfslocalsys/slurm/current/bin:/gpfslocalsup/bin:/gpfslocalsys/bin"
@@ -31,18 +37,20 @@ if not os.path.exists(filename):
     urllib.request.urlretrieve(f"http://www.quantum-machine.org/gdml/data/npz/{filename}", filename)
 
 # --- Hyperparameters ---
-features = 32
-max_degree = 2
-num_iterations = 3
-num_basis_functions = 32
-cutoff = 3.0
+hyperparams = {
+    "features" : 32,
+    "max_degree" : 2,
+    "num_iterations" : 3,
+    "num_basis_functions" : 32,
+    "cutoff" : 3.0,
 
-num_train = 200
-num_valid = 25
-num_epochs = 20  # short for testing; increase as needed
-learning_rate = 0.01
-forces_weight = 1.0
-batch_size = 20
+    "num_train" : 200,
+    "num_valid" : 25,
+    "num_epochs" : 20,  # short for testing; increase as needed
+    "learning_rate" : 0.01,
+    "forces_weight" : 1.0,
+    "batch_size" : 20
+}
 
 
 base_dir = os.path.dirname(os.path.abspath(__file__))
@@ -51,16 +59,20 @@ params_path = os.path.join(base_dir, "hyperparams.xml")
 
 xml_param = XMLManager(params_path, mode='reading')
 # print(xml_param.parse_xml()) 
-for key, value in xml_param.items():
+for key, value in xml_param.parse_xml().items():
     # print(f"{key}: {value}")
-    if key in globals():
-        current_type = type(globals()[key])
+    if key in hyperparams:
+        current_type = type(hyperparams[key])
         try:
-            globals()[key] = current_type(value)
+            hyperparams[key] = current_type(value)
         except ValueError:
             print(f"Warning: Could not cast '{key}' to {current_type}. Skipping.")
 
 
+for key, value in hyperparams.items():
+    globals()[key] = value
+
+results["hyperparameters"] = hyperparams
 
 
 
@@ -218,7 +230,7 @@ class MessagePassingModel(nn.Module):
                 y = e3x.nn.Dense(self.features, kernel_init=jax.nn.initializers.zeros)(y)
                 x = e3x.nn.add(x, y)
         # Aggregate atomic features to form a molecule-level descriptor.
-        #CPUvsGPU 
+        # CPU vs GPU 
         descriptor = jax.ops.segment_sum(x, segment_ids=batch_segments, num_segments=batch_size)
         #descriptor = jax.lax.segment_sum(x, segment_ids=batch_segments, num_segments=batch_size)
         return descriptor
@@ -622,7 +634,7 @@ def calibrate_model(params, model, dataset, beta=beta):
 
     theta_star = jnp.linalg.solve(T_avg, c_avg)
 
-    print("Calibration complete: theta_star =", theta_star)
+    # print("Calibration complete: theta_star =", theta_star)
     return theta_star
 
 
@@ -687,11 +699,10 @@ def calibrated_forces(params, theta, model, atomic_numbers, positions, dst_idx, 
 
 
 # --- Main execution ---
-
 # 1. Prepare dataset
 data_key, train_key = jax.random.split(jax.random.PRNGKey(0), 2)
 train_data, valid_data, mean_energy = prepare_datasets(data_key, num_train=num_train, num_valid=num_valid)
-print(f"Mean energy (shift applied): {mean_energy:.6f} kcal/mol")
+# print(f"Mean energy (shift applied): {mean_energy:.6f} kcal/mol")
 
 # 2. Initialize and train the message-passing model
 message_passing_model = MessagePassingModel(
@@ -718,15 +729,15 @@ with open("before_model_params.bin", "wb") as f:
     f.write(flax.serialization.to_bytes(params))
 print("Bare model parameters saved to 'before_model_params.bin'.")
 
+theta_basic = params["params"]["theta"]['kernel'].flatten()
+results["theta_basic"] = theta_basic
+results["params"] = params
+
+
+
 # 4. Prepare calibration dataset
 calib_data = prepare_calibration_dataset(filename, mean_energy=mean_energy, num_calib=100)
-
-# 5. Extract initial theta (before calibration)
-theta_basic = params["params"]["theta"]['kernel'].flatten()
-print(f"Initial theta_basic shape: {theta_basic.shape}")
-
-# 6. Run calibration
-print("Running calibration...")
+# Run calibration
 #theta_star = calibrate_model(params, message_passing_model, calib_data, beta=beta)
 # --- vectorized calibration call ---
 T_samples, c_samples = v_one(
@@ -741,111 +752,196 @@ T_samples, c_samples = v_one(
 T_avg = jnp.mean(T_samples, axis=0)
 c_avg = jnp.mean(c_samples, axis=0)
 theta_star = jnp.linalg.solve(T_avg, c_avg)
-print("θ* computed via vmap:", theta_star)
-print(f"Calibration complete. Theta_star size: {len(theta_star)}")
-print("Calibration complete: theta_star =", theta_star)
+
+results["theta_fisher"] = theta_star
+
+# 1. Copy and inject theta_star into params
+params_fisher = copy.deepcopy(params)
+params_fisher["params"]["theta"]['kernel'] = theta_star.reshape(-1, 1)  # Ensure shape (N,1) for compatibility
+with open("fisher_model_params.bin", "wb") as f:
+    f.write(flax.serialization.to_bytes(params_fisher))
+print("Fisher-calibrated model parameters saved to 'fisher_model_params.bin'.")
 
 
 
-# 7. Compare theta_star vs theta_basic
-differences = theta_star - theta_basic
-estimated_constant = np.mean(differences)
-print(f"Estimated offset between theta_star and theta_basic: {estimated_constant:.6e}")
 
-# 8. Save calibrated parameters
-calibrated_params = {"model_params": params, "theta": theta_star}
-with open("calibrated_model_params.bin", "wb") as f:
-    f.write(flax.serialization.to_bytes(calibrated_params))
-print("Calibrated model parameters saved to 'calibrated_model_params.bin'.")
-
-# --- Test Predictions (Validation sample) ---
-
-# Select first validation sample
-sample = valid_data
+##############
+# theta projected unto ker D (for a calib data only)
+sample = calib_data #valid_data
 num_atoms = sample['positions'].shape[1]
 batch_segments = jnp.zeros(num_atoms, dtype=jnp.int32)
 batch_size = 1
 dst_idx, src_idx = e3x.ops.sparse_pairwise_indices(num_atoms)
 atomic_numbers = sample['atomic_numbers']
-positions = sample['positions'][0]
 
-# Predict with uncalibrated model
-initial_energy, initial_forces = message_passing_model.apply(
+### Fisher projected unto kerD
+def extr_desc(positions):
+    return jnp.squeeze(message_passing_model.apply(
     params,
     atomic_numbers,
-    positions,
+    positions, 
     dst_idx,
     src_idx,
     batch_segments,
-    batch_size
-)
+    batch_size,
+    method = MessagePassingModel.extract_descriptor
 
-# Predict with calibrated model
-calib_energy = calibrated_energy(params, theta_star, message_passing_model, atomic_numbers, positions, dst_idx, src_idx, batch_segments, batch_size)
-calib_forces = calibrated_forces(params, theta_star, message_passing_model, atomic_numbers, positions, dst_idx, src_idx, batch_segments, batch_size)
+))
+batch_extr_desc = jax.vmap(extr_desc)
 
-# Print results
-print("\n=== Uncalibrated Model Predictions ===")
-print(f"Energy: {initial_energy}")
-print(f"Forces shape: {initial_forces.shape}")
+D = batch_extr_desc(sample['positions'])
+U, S, Vt = jnp.linalg.svd(D,full_matrices=False)
 
-print("\n=== Calibrated Model Predictions ===")
-print(f"Calibrated Energy: {calib_energy}")
-print(f"Calibrated Forces shape: {calib_forces.shape}")
+T = theta_basic-theta_star
+X = Vt[0:10] # !!!!!!!!!!!!!!!!!!! 10 arbitrary, might make it a variable ? !!!!!!!!!!!!
+A = X.T@X@T - T
+theta_mixed = theta_basic + A
 
-
-
-
-basic_energy = calibrated_energy(params, theta_basic, message_passing_model, atomic_numbers, positions, dst_idx, src_idx, batch_segments, batch_size)
-basic_forces = calibrated_forces(params, theta_basic, message_passing_model, atomic_numbers, positions, dst_idx, src_idx, batch_segments, batch_size)
-print("\n=== Basic Model Predictions ===")
-print("Calibrated Energy:", basic_energy)
-print("Calibrated Forces:", basic_forces)
+params_mixed = copy.deepcopy(params)
+params_mixed["params"]["theta"]['kernel'] = theta_mixed.reshape(-1, 1)
+# that's it
+with open("mixed_model_params.bin", "wb") as f:
+    f.write(flax.serialization.to_bytes(params_mixed))
+print("Mixed parameters saved.")
+results["theta_mixed"] = theta_mixed
 
 
 
 
-# --- Lerping functions (interpolation between two theta vectors) ---
 
-def lerping(theta1, theta2, t):
-    """Simple interpolation between two parameter vectors."""
-    return (1 - t) * theta1 + t * theta2
 
-def n_lerping(theta1, theta2, n):
-    """n intermediate interpolations between two parameter vectors."""
-    t_values = jnp.linspace(0, 1, n)
-    return theta1 * (1 - t_values[:, None]) + theta2 * t_values[:, None]
 
-# --- Apply calibrated (Fisher) parameters ---
+## validation computation
+sample = valid_data
+positions = sample['positions']             # shape: (N_samples, N_atoms, 3)
+atomic_numbers = sample['atomic_numbers']   # shape: (N_atoms,)
+num_atoms = atomic_numbers.shape[0]
+batch_segments = jnp.zeros(num_atoms, dtype=jnp.int32)
+batch_size = 1
+dst_idx, src_idx = e3x.ops.sparse_pairwise_indices(num_atoms)
 
-import copy
+# Function to apply model for a single sample
+def predict_single(params, pos):
+    energy, forces = message_passing_model.apply(
+        params,
+        atomic_numbers,
+        pos,
+        dst_idx,
+        src_idx,
+        batch_segments,
+        batch_size
+    )
+    return energy, forces
 
-# 1. Copy and inject theta_star into params
-params_fisher = copy.deepcopy(params)
-params_fisher["params"]["theta"]['kernel'] = theta_star.reshape(-1, 1)  # Ensure shape (N,1) for compatibility
+# Vectorize over batch dimension (i.e., over samples in `positions`)
+batched_predict_initial = jax.vmap(lambda pos: predict_single(params, pos), in_axes=0)
+batched_predict_fisher = jax.vmap(lambda pos: predict_single(params_fisher, pos), in_axes=0)
+batched_predict_mixed = jax.vmap(lambda pos: predict_single(params_mixed, pos), in_axes=0)
 
-# 2. Predict energy and forces with Fisher calibrated model
-fisher_energy, fisher_forces = message_passing_model.apply(
-    params_fisher,
-    atomic_numbers,
-    positions,
-    dst_idx,
-    src_idx,
-    batch_segments,
-    batch_size
-)
+# Run predictions
+initial_energies, initial_forces = batched_predict_initial(positions)
+fisher_energies, fisher_forces = batched_predict_fisher(positions)
+mixed_energies, mixed_forces = batched_predict_mixed(positions)
 
-print("\n=== Fisher-Calibrated Model Predictions ===")
-print(f"Energy: {fisher_energy}")
-print(f"Forces shape: {fisher_forces.shape}")
+# Store in a results dictionary (or use a dataclass or struct if preferred)
+validation = {
+    "initial": {"energies": initial_energies, "forces": initial_forces},
+    "fisher":  {"energies": fisher_energies,  "forces": fisher_forces},
+    "mixed":   {"energies": mixed_energies,   "forces": mixed_forces}
+}
 
-# 3. Save Fisher-calibrated parameters
-import flax
-with open("fisher_model_params.bin", "wb") as f:
-    f.write(flax.serialization.to_bytes(params_fisher))
-print("Fisher-calibrated model parameters saved to 'fisher_model_params.bin'.")
+## to see if above works, here a bit of code printing it (not entirely to be manageable)
+# from pprint import pprint
+# # Print energies and forces for the first 3 samples
+# for key in ["initial", "fisher", "mixed"]:
+#     print(f"\n--- {key.upper()} ---")
+#     print("Energies (first 3):")
+#     pprint(validation[key]["energies"][:3])
+    
+#     print("\nForces (first 3):")
+#     pprint(validation[key]["forces"][:3])
+results["validation"] = validation
 
-# --- Test: Compare Uncalibrated vs Calibrated vs Fisher-Calibrated Models ---
+
+xml_res = XMLManager(results_path, mode='writing')
+xml_res.generate_xml(results)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+## can be deleted i believe
+'''
+## validation of the obtained theta (energy and forces computation on validation data)
+# sample = valid_data
+# num_atoms = sample['positions'].shape[1]
+# batch_segments = jnp.zeros(num_atoms, dtype=jnp.int32)
+# batch_size = 1
+# dst_idx, src_idx = e3x.ops.sparse_pairwise_indices(num_atoms)
+# atomic_numbers = sample['atomic_numbers']
+# # --- Test Predictions (Validation sample) ---
+# positions = sample['positions'][0]
+
+
+# # Predict with uncalibrated model
+# initial_energy, initial_forces = message_passing_model.apply(
+#     params,
+#     atomic_numbers,
+#     positions,
+#     dst_idx,
+#     src_idx,
+#     batch_segments,
+#     batch_size
+# )
+# results["initial_energy"] = initial_energy
+# results["initial_forces"] = initial_forces
+
+
+
+# # 2. Predict energy and forces with Fisher calibrated model
+# fisher_energy, fisher_forces = message_passing_model.apply(
+#     params_fisher,
+#     atomic_numbers,
+#     positions,
+#     dst_idx,
+#     src_idx,
+#     batch_segments,
+#     batch_size
+# )
+# results["fisher_energy"] = fisher_energy
+# results["fisher_forces"] = fisher_forces
+
+
+
+# mixed_energy, mixed_forces = message_passing_model.apply(
+#     params_mixed,
+#     atomic_numbers,
+#     positions,
+#     dst_idx,
+#     src_idx,
+#     batch_segments,
+#     batch_size
+# )
+# results["mixed_energy"] = mixed_energy
+# results["mixed_forces"] = mixed_forces
+
+### ///////////////////////////////
+
+
+
 
 # 4. Select another sample (here sample[1])
 sample = valid_data
@@ -911,3 +1007,43 @@ print(f"Fisher-Calibrated Energy: {fisher_energy}")
 print(f"\nUncalibrated Forces norm: {jnp.linalg.norm(initial_forces)}")
 print(f"Calibrated Forces norm: {jnp.linalg.norm(calib_forces)}")
 print(f"Fisher-Calibrated Forces norm: {jnp.linalg.norm(fisher_forces)}")
+
+
+
+# # Predict with calibrated model
+# calib_energy = calibrated_energy(params, theta_star, message_passing_model, atomic_numbers, positions, dst_idx, src_idx, batch_segments, batch_size)
+# calib_forces = calibrated_forces(params, theta_star, message_passing_model, atomic_numbers, positions, dst_idx, src_idx, batch_segments, batch_size)
+
+# Print results
+# print("\n=== Uncalibrated Model Predictions ===")
+# print(f"Energy: {initial_energy}")
+# print(f"Forces shape: {initial_forces.shape}")
+
+# print("\n=== Calibrated Model Predictions ===")
+# print(f"Calibrated Energy: {calib_energy}")
+# print(f"Calibrated Forces shape: {calib_forces.shape}")
+
+# basic_energy = calibrated_energy(params, theta_basic, message_passing_model, atomic_numbers, positions, dst_idx, src_idx, batch_segments, batch_size)
+# basic_forces = calibrated_forces(params, theta_basic, message_passing_model, atomic_numbers, positions, dst_idx, src_idx, batch_segments, batch_size)
+# print("\n=== Basic Model Predictions ===")
+# print("Calibrated Energy:", basic_energy)
+# print("Calibrated Forces:", basic_forces)
+
+# --- Apply calibrated (Fisher) parameters ---
+# 3. Save Fisher-calibrated parameters
+
+
+# print("\n=== Fisher-Calibrated Model Predictions ===")
+# print(f"Energy: {fisher_energy}")
+# print(f"Forces shape: {fisher_forces.shape}")
+
+# --- Test: Compare Uncalibrated vs Calibrated vs Fisher-Calibrated Models ---
+
+
+#### not useful ???
+# # Save calibrated parameters
+# calibrated_params = {"model_params": params, "theta": theta_star}
+# with open("calibrated_model_params.bin", "wb") as f:
+#     f.write(flax.serialization.to_bytes(calibrated_params))
+# print("Calibrated model parameters saved to 'calibrated_model_params.bin'.")
+'''

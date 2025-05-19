@@ -37,11 +37,23 @@ print("Available devices:", jax.devices())
 print("Default backend:", jax.default_backend())
 print("========================================================\n")
 
-features = 32
-max_degree = 1
-num_iterations = 3
-num_basis_functions = 32 #16
-cutoff = 5.0
+
+run_results = {}
+run_results_path = './run_result.xml'
+
+hyperparams = {
+  "features" : 32,
+  "max_degree" : 1,
+  "num_iterations" : 3,
+  "num_basis_functions" : 32, #16,
+  "cutoff" : 5.0,
+  "run_num_train" : 900,
+  "run_num_valid" : 100,
+  "timestep_fs" : 1.0,
+  "num_steps" : 400,
+  "temperature" : 1000
+}
+
 
 base_dir = os.path.dirname(os.path.abspath(__file__))
 params_path = os.path.join(base_dir, "hyperparams.xml")
@@ -49,17 +61,20 @@ params_path = os.path.join(base_dir, "hyperparams.xml")
 
 xml_param = XMLManager(params_path, mode='reading')
 # print(xml_param.parse_xml()) 
-for key, value in xml_param.items():
+for key, value in xml_param.parse_xml().items():
     # print(f"{key}: {value}")
-    if key in globals():
-        current_type = type(globals()[key])
+    if key in hyperparams:
+        current_type = type(hyperparams[key])
         try:
-            globals()[key] = current_type(value)
+            hyperparams[key] = current_type(value)
         except ValueError:
             print(f"Warning: Could not cast '{key}' to {current_type}. Skipping.")
 
 
+for key, value in hyperparams.items():
+    globals()[key] = value
 
+run_results["hyperparams"] = hyperparams
 
 
 
@@ -173,7 +188,7 @@ def evaluate_energies_and_forces(atomic_numbers, positions, dst_idx, src_idx, pa
         src_idx=jnp.asarray(src_idx),
     )
 
-
+"""
 class MessagePassingCalculator(ase_calc.Calculator):
   implemented_properties = ["energy", "forces"]
 
@@ -204,7 +219,10 @@ class MessagePassingCalculator(ase_calc.Calculator):
     # Store in ASE format
     self.results['energy'] = energy_np * ase.units.kcal/ase.units.mol
     self.results['forces'] = forces_np * ase.units.kcal/ase.units.mol
-    
+"""
+
+
+
     
 @functools.partial(jax.jit, static_argnames=('model_apply', 'optimizer_update', 'batch_size'))
 def train_step(model_apply, optimizer_update, batch, batch_size, forces_weight, opt_state, params):
@@ -266,23 +284,30 @@ def eval_step(model_apply, batch, batch_size, forces_weight, params):
     
 
 
-os.system('pwd')
-os.system('ls -ltr')
-# # Model hyperparameters. defined above already
-# features = 32
-# max_degree = 1
-# num_iterations = 3
-# num_basis_functions = 32 #16
-# cutoff = 5.0
+# os.system('pwd')
+# os.system('ls -ltr')
 
 
 
-# Training hyperparameters.
-num_train = 900
-num_valid = 100
 
-#Load the data: 
-# Download the dataset.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#Load the data: # Download the dataset.
 filename = "md17_ethanol.npz"
 if not os.path.exists(filename):
   print(f"Downloading {filename} (this may take a while)...")
@@ -322,32 +347,24 @@ def prepare_datasets(key, num_train, num_valid):
   )
   return train_data, valid_data, mean_energy
 
+
+
+
 # Create PRNGKeys.
 key = jax.random.PRNGKey(0)
 data_key, train_key = jax.random.split(key, 2)
 
 # Draw training and validation sets.
-train_data, valid_data, _ = prepare_datasets(data_key, num_train=num_train, num_valid=num_valid)
+train_data, valid_data, _ = prepare_datasets(data_key, num_train=run_num_train, num_valid=run_num_valid)
   
 
 
 
-import flax
-import msgpack
+# import msgpack
 import msgpack_numpy
-import pprint
-
+# import pprint
 # Use msgpack_numpy for proper NumPy serialization support
 msgpack_numpy.patch()  # this allows msgpack to handle np arrays
-
-
-
-
-# features = 32
-# max_degree = 2
-# num_iterations = 3
-# num_basis_functions = 32 #16
-# cutoff = 5.0
 
 # Re-initialize the model exactly as you did before training
 message_passing_model = MessagePassingModel(
@@ -360,7 +377,6 @@ message_passing_model = MessagePassingModel(
 
 # Create a PRNGKey for initialization
 key = random.PRNGKey(0)  # Use a key, the specific value is not crucial here
-
 
 dst_idx, src_idx = e3x.ops.sparse_pairwise_indices(len(train_data['atomic_numbers']))
 # SAFETY: convert everything to JAX arrays
@@ -389,13 +405,19 @@ default_params = flax.serialization.from_bytes(dummy_params, serialized_params)
 
 with open('fisher_model_params.bin', 'rb') as f:
     fisher_serialized_params = f.read()
-params = flax.serialization.from_bytes(dummy_params, fisher_serialized_params)  
+fisher_params = flax.serialization.from_bytes(dummy_params, fisher_serialized_params)  
 # print(params)
 
 
+with open('mixed_model_params.bin', 'rb') as f:
+    mixed_serialized_params = f.read()
+mixed_params = flax.serialization.from_bytes(dummy_params, mixed_serialized_params)  
+# print(params)
 
+params = fisher_params
 @jax.jit
 def evaluate_energies_and_forces(atomic_numbers, positions, dst_idx, src_idx):
+    # print(params)
     return message_passing_model.apply(params,
         atomic_numbers=jnp.asarray(atomic_numbers),
         positions=jnp.asarray(positions),
@@ -439,6 +461,63 @@ class MessagePassingCalculator(ase_calc.Calculator):
         }
 
 
+
+
+
+
+
+
+def run_md_simulation(params, tag):
+    params = params
+    atoms = ase.Atoms(train_data['atomic_numbers'], train_data['positions'][0])
+    atoms.set_calculator(MessagePassingCalculator())
+
+    # Structure optimization
+    _ = ase_opt.BFGS(atoms).run(fmax=0.05)
+
+    # Initial momenta
+    MaxwellBoltzmannDistribution(atoms, temperature_K=temperature)
+    Stationary(atoms)
+    ZeroRotation(atoms)
+
+    # Integrator
+    integrator = VelocityVerlet(atoms, timestep=timestep_fs * ase.units.fs)
+
+    # Storage
+    frames = np.zeros((num_steps, len(atoms), 3))
+    potential_energy = np.zeros(num_steps)
+    kinetic_energy = np.zeros(num_steps)
+    total_energy = np.zeros(num_steps)
+
+    for i in range(num_steps):
+        integrator.run(1)
+        frames[i] = atoms.get_positions()
+        potential_energy[i] = atoms.get_potential_energy()
+        kinetic_energy[i] = atoms.get_kinetic_energy()
+        total_energy[i] = atoms.get_total_energy()
+        if i % 100 == 0:
+            print(f"[{tag}] step {i:5d} epot {potential_energy[i]: 5.3f} ekin {kinetic_energy[i]: 5.3f} etot {total_energy[i]: 5.3f}")
+
+    # Export results
+    tag_results = {
+        "time": np.arange(num_steps)*timestep_fs,
+        "frames": frames,
+        "potential_energy": potential_energy,
+        "kinetic_energy": kinetic_energy,
+        "total_energy": total_energy
+    }
+    return tag_results
+
+
+
+
+
+
+
+
+
+"""
+params = fisher_params
 atoms = ase.Atoms(train_data['atomic_numbers'], train_data['positions'][0])
 atoms.set_calculator(MessagePassingCalculator())
 
@@ -447,8 +526,9 @@ _ = ase_opt.BFGS(atoms).run(fmax=0.05)
 
 # Parameters.
 temperature = 1000
-timestep_fs = 1.0
-num_steps = 400
+# defined above
+# timestep_fs = 1.0
+# num_steps = 400
 
 
 # Draw initial momenta.
@@ -473,13 +553,29 @@ for i in range(num_steps):
   kinetic_energy[i] = atoms.get_kinetic_energy()
   total_energy[i] = atoms.get_total_energy()
   # Occasionally print progress.
-  if i % 40 == 0:
+  if i % 100 == 0:
     print(f"step {i:5d} epot {potential_energy[i]: 5.3f} ekin {kinetic_energy[i]: 5.3f} etot {total_energy[i]: 5.3f}")
+"""
 
 
+# export the results :
+#time = np.arange(num_steps) * timestep_fs
+# run_results["time"] = time
+# run_results["frames"] = frames
+# run_results["potential_energy"] = potential_energy
+# run_results["kinetic_energy"] = kinetic_energy
+# run_results["total_energy"] = total_energy
 
 
-# In[37]:
+run_results["fisher_results"] = run_md_simulation(fisher_params, tag="fisher")
+run_results["mixed_results"] = run_md_simulation(mixed_params, tag="mixed")
+run_results["default_results"] = run_md_simulation(default_params, tag="default")
+
+
+xml_res = XMLManager(run_results_path, mode='writing')
+xml_res.generate_xml(run_results)
+
+
 
 #import matplotlib.pyplot as plt
 #import numpy as np

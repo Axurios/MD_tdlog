@@ -15,7 +15,12 @@ hyperparams = {
     "num_epochs" : 20,  # short for testing; increase as needed
     "learning_rate" : 0.01,
     "forces_weight" : 1.0,
-    "batch_size" : 20
+    "batch_size" : 20,
+    "run_num_train":900,
+    "run_num_valid":100,
+    "timestep_fs": 1.0,
+    "num_steps" : 400,
+    "temperature" : 1000
 }
 
 
@@ -32,6 +37,10 @@ key_abbrev = {
     "num_train": "tr",
     "num_valid": "val",
     "forces_weight": "fw",
+    "run_num_train": "runtr",
+    "run_num_valid": "runval",
+    "timestep_fs": "tfs",
+    "num_steps" : "steps"
 }
 
 from itertools import product
@@ -86,7 +95,7 @@ if __name__ == "__main__":
         "max_degree": [2, 3],
         "learning_rate": [0.001, 0.01],
         "num_epochs": [10],
-        "batch_size": [20],
+        "batch_size": [30],
 
         "num_iterations" : [3],
         "num_basis_functions" : [32],
@@ -94,6 +103,9 @@ if __name__ == "__main__":
         "num_train" : [200],
         "num_valid" : [25],
         "forces_weight" : [1.0],
+        "run_num_train":900,
+        "run_num_valid":100,
+        "temperature" : 1000
     }
     run_all_combinations(hyperparam_options, use_xml=True)
     # will create all possibilities from the cross product space of the hyperparams given
