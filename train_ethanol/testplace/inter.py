@@ -506,7 +506,7 @@ def train_model(key, model, train_data, valid_data, num_epochs, learning_rate, f
             valid_energy_mae += (energy_mae - valid_energy_mae) / (i+1)
             valid_forces_mae += (forces_mae - valid_forces_mae) / (i+1)
 
-        if epoch % 10 == 0:
+        if epoch % 50 == 0:
             print(f"epoch: {epoch: 3d}    train loss: {train_loss:8.3f}   valid loss: {valid_loss:8.3f}")
             print(f"    energy mae: {train_energy_mae:8.3f}   valid energy mae: {valid_energy_mae:8.3f}")
             print(f"    forces mae: {train_forces_mae:8.3f}   valid forces mae: {valid_forces_mae:8.3f}")

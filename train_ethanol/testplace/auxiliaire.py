@@ -51,7 +51,9 @@ module load cudnn/9.8.0.87-cuda
 
 
 python -u inter_copy.py  > out_train
-python -u run_copy.py  > out_run
+python -u run_fisher_copy.py  > out_run_fisher
+python -u run_mixed_copy.py  > out_run_mixed
+python -u run_default_copy.py  > out_run_default
 """
 
     with open(filename, "w") as f:
@@ -108,7 +110,9 @@ def run_all_combinations(hyperparam_options, use_xml=True):
     base_dir = os.path.dirname(os.path.abspath(__file__))
 
     inter_file = os.path.join(base_dir, "inter.py")
-    run_file = os.path.join(base_dir, "run.py")
+    run_fisher_file = os.path.join(base_dir, "run_fisher.py")
+    run_mixed_file = os.path.join(base_dir, "run_mixed.py")
+    run_default_file = os.path.join(base_dir, "run_default.py")
     config_manager_file = os.path.join(base_dir, "config_managers.py")
     # Absolute path to the source file
     source_db_file = os.path.join(base_dir, "md17_ethanol.npz")
@@ -148,7 +152,9 @@ def run_all_combinations(hyperparam_options, use_xml=True):
 
         # Copy inter.py and run.py into the folder
         shutil.copy2(inter_file, os.path.join(target_folder, "inter_copy.py"))
-        shutil.copy2(run_file, os.path.join(target_folder, "run_copy.py"))
+        shutil.copy2(run_fisher_file, os.path.join(target_folder, "run_fisher_copy.py"))
+        shutil.copy2(run_mixed_file, os.path.join(target_folder, "run_mixed_copy.py"))
+        shutil.copy2(run_default_file, os.path.join(target_folder, "run_default_copy.py"))
         shutil.copy2(config_manager_file, os.path.join(target_folder, "config_managers.py"))
         target_db_file = os.path.join(target_folder, db_filename)
         # Create symlink or copy
@@ -157,7 +163,7 @@ def run_all_combinations(hyperparam_options, use_xml=True):
             # or use shutil.copy2(source_db_file, target_db_file) to copy
 
         print(f"Created run in {target_folder}")
-        write_jsub(job_name="my-test-job", time_limit="03:30:00", filename=target_folder+'/jsub')
+        write_jsub(job_name="my-test-job", time_limit="06:30:00", filename=target_folder+'/jsub')
         submit_job_in_folder(target_folder)        
 
 # Example usage
@@ -166,7 +172,7 @@ if __name__ == "__main__":
         "features": [16, 32],
         "max_degree": [3],
         "learning_rate": [0.001, 0.01],
-        "num_epochs": [500],
+        "num_epochs": [800],
         "batch_size": [50],
 
         "num_iterations" : [3],
