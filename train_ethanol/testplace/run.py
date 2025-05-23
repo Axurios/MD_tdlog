@@ -415,6 +415,12 @@ mixed_params = flax.serialization.from_bytes(dummy_params, mixed_serialized_para
 # print(params)
 
 params = fisher_params
+
+
+
+
+
+
 @jax.jit
 def evaluate_energies_and_forces(atomic_numbers, positions, dst_idx, src_idx):
     # print(params)
