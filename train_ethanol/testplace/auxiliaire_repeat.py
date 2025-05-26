@@ -183,14 +183,28 @@ def manage_launch_calculations(nb_calc) :
                        list_folder=[],
                        mode='reading')
     dic_path = meta_xml.parse_xml()
-    path2launch, dic_path_update = meta_xml.select_calculation_to_run(dic_path,
-                                                                      nb_calc)
-    for path in path2launch : 
-        try : 
+    
+    # Select all jobs if nb_calc < 0
+    if nb_calc < 0:
+        nb_calc = len([v for v in dic_path.values() if not v.get("launch", False)])
+
+    path2launch, dic_path_update = meta_xml.select_calculation_to_run(dic_path, nb_calc)
+
+    #path2launch, dic_path_update = meta_xml.select_calculation_to_run(dic_path, nb_calc)
+    #for path in path2launch : 
+    #    try : 
+    #        submit_job_in_folder(path)
+    #    except : 
+    #        print(f'Problem to launch {path}')
+    #        dic_path_update[path]['launch'] = False
+            
+    
+    for path in path2launch:
+        try:
             submit_job_in_folder(path)
-        except : 
-            print(f'Problem to launch {path}')
-            dic_path_update[path]['launch'] = False
+        except Exception as e:
+            print(f'Problem to launch {path}: {e}')
+            dic_path_update[path]['launch'] = False        
 
     meta_xml.update_xml(dic_path_update)
     meta_xml.write_xml()
@@ -220,10 +234,10 @@ if __name__ == "__main__":
         "run_num_valid":[100],
         "num_steps":[1000000],
         "temperature" : [1000],
-        "repeat": np.arange(3).tolist()
+        "repeat": np.arange(30).tolist()
     }
 
-    nb_calc = 10
+    nb_calc = -1
 
     if mode == 'build' :
         write_all_combinations(hyperparam_options, use_xml=True)
