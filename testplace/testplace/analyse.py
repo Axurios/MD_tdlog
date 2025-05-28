@@ -15,7 +15,11 @@ line_styles = {
     'fisher': ':',
     'bfgs': '-.'  # or any style you like
 }
-
+energy_styles = {
+    'epot': {'marker': 'o', 'linewidth': 2.5},
+    'ekin': {'marker': 's', 'linewidth': 1.8},
+    'etot': {'marker': '^', 'linewidth': 1.2},
+}
 
 # Updated patterns to capture epot, ekin, etot
 patterns = {
@@ -57,17 +61,9 @@ for folder in data:
     for method in data[folder]:
         data[folder][method].sort()
 
-
 # Colors per folder
 colors = plt.cm.tab10.colors
 folder_colors = {folder: colors[i % len(colors)] for i, folder in enumerate(data)}
-
-# Energy type line styles (can adjust as needed)
-energy_styles = {
-    'epot': ':',
-    'ekin': '--',
-    'etot': '-'
-}
 
 plt.figure(figsize=(12, 7))
 
@@ -78,32 +74,67 @@ for folder, methods in data.items():
             continue
         steps, epots, ekins, etots = zip(*points)
 
-        # Plot each energy component with a distinct linestyle
-        for energy_type, values, style in zip(
-            ['epot', 'ekin', 'etot'],
-            [epots, ekins, etots],
-            [energy_styles['epot'], energy_styles['ekin'], energy_styles['etot']]
-        ):
-            label = f"{folder} - {method} - {energy_type}"
-            plt.plot(steps, values, linestyle=style, color=color)
+        for energy_type, values in zip(['epot', 'ekin', 'etot'], [epots, ekins, etots]):
+            style = energy_styles[energy_type]
+            alpha_val = 0.5 if energy_type == 'ekin' else 1.0  # Transparent for ekin only
+            plt.plot(
+                steps,
+                values,
+                linestyle=line_styles.get(method, '-'),
+                color=color,
+                marker=style['marker'],
+                linewidth=style['linewidth'],
+                markevery=max(len(steps)//20, 1),
+                alpha=alpha_val,
+                label=f"{folder} - {method} - {energy_type}"
+            )
 
-# Build legend for line styles (for energy types)
-custom_lines = []
+# Create legend handles for methods (linestyles)
+method_handles = []
+for method, ls in line_styles.items():
+    if method == 'bfgs':
+        continue
+    method_handles.append(plt.Line2D([], [], linestyle=ls, color='black', label=method))
+
+# Create legend handles for energy types (markers + linewidth)
+energy_handles = []
 for energy_type, style in energy_styles.items():
-    custom_lines.append(plt.Line2D([], [], linestyle=style, color='black', label=energy_type))
+    energy_handles.append(plt.Line2D([], [], linestyle='-', color='black',
+                                     marker=style['marker'], linewidth=style['linewidth'],
+                                     label=energy_type))
 
-# Add legend
+# Place legends (two separate legends)
+leg1 = plt.legend(handles=method_handles, title='Method Linestyle', loc='upper right', fontsize='small')
+plt.gca().add_artist(leg1)  # Add first legend manually so second doesn't overwrite
+
+plt.legend(handles=energy_handles, title='Energy Type', loc='upper left', fontsize='small')
+
 plt.xlabel('Step')
 plt.ylabel('Energy')
 plt.title('Energy Components vs Step for Different Methods')
-plt.legend(ncol=2, fontsize='small')
 plt.grid(True)
 plt.tight_layout()
 plt.show()
 
 
 
-# ---------- Zoomed-In Plot ----------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 plt.figure(figsize=(12, 7))
 
 for folder, methods in data.items():
@@ -119,25 +150,41 @@ for folder, methods in data.items():
 
         steps, epots, ekins, etots = zip(*zoomed_points)
 
-        # Plot each energy component with unique linestyle
-        for energy_type, values, style in zip(
-            ['epot', 'ekin', 'etot'],
-            [epots, ekins, etots],
-            [energy_styles['epot'], energy_styles['ekin'], energy_styles['etot']]
-        ):
-            label = f"{folder} - {method} - {energy_type}"
-            plt.plot(steps, values, linestyle=style, color=color)
+        for energy_type, values in zip(['epot', 'ekin', 'etot'], [epots, ekins, etots]):
+            style = energy_styles[energy_type]  # dict with 'marker' and 'linewidth'
+            alpha_val = 0.5 if energy_type == 'ekin' else 1.0
 
-# Create dummy lines for legend to show energy type styles
-for energy_type, style in energy_styles.items():
-    plt.plot([], [], style, color='black', label=energy_type)
+            plt.plot(
+                steps,
+                values,
+                linestyle=line_styles.get(method, '-'),
+                color=color,
+                marker=style['marker'],
+                linewidth=style['linewidth'],
+                markevery=max(len(steps)//20, 1),
+                alpha=alpha_val,
+                label=f"{folder} - {method} - {energy_type}"
+            )
+
+# Legend for energy types (marker/linewidth combos)
+energy_legend_lines = [
+    plt.Line2D([], [], color='black', linestyle='-', marker=energy_styles[etype]['marker'], 
+               linewidth=energy_styles[etype]['linewidth'], label=etype)
+    for etype in energy_styles
+]
+
+# Legend for method line styles
+method_legend_lines = [
+    plt.Line2D([], [], color='black', linestyle=style, linewidth=2, label=method)
+    for method, style in line_styles.items() if method != 'bfgs'
+]
 
 plt.xlabel('Step')
 plt.ylabel('Energy')
 plt.title('Zoomed: Energy Components vs Step (Steps ≤ 10,000)')
 plt.grid(True)
 plt.tight_layout()
-plt.legend(ncol=2, fontsize='small')
+plt.legend(handles=energy_legend_lines + method_legend_lines, ncol=2, fontsize='small')
 plt.show()
 
 
@@ -145,10 +192,22 @@ plt.show()
 
 
 
-import random
-import matplotlib.pyplot as plt
 
-# Pick a random folder from data
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+import random
 selected_folder, methods = random.choice(list(data.items()))
 
 plt.figure(figsize=(12, 7))
@@ -160,27 +219,55 @@ for method, points in methods.items():
 
     steps, epots, ekins, etots = zip(*points)
 
-    # Plot each energy component
-    for energy_type, values, style in zip(
-        ['epot', 'ekin', 'etot'],
-        [epots, ekins, etots],
-        [energy_styles['epot'], energy_styles['ekin'], energy_styles['etot']]
-    ):
-        label = f"{method} - {energy_type}"
-        plt.plot(steps, values, linestyle=style, color=color)
+    for energy_type, values in zip(['epot', 'ekin', 'etot'], [epots, ekins, etots]):
+        style = energy_styles[energy_type]
+        alpha_val = 0.5 if energy_type == 'ekin' else 1.0
 
-# Add legend explanation for energy types
-for energy_type, style in energy_styles.items():
-    plt.plot([], [], style, color='black', label=energy_type)
+        plt.plot(
+            steps,
+            values,
+            linestyle=line_styles.get(method, '-'),
+            color=color,
+            marker=style['marker'],
+            linewidth=style['linewidth'],
+            markevery=max(len(steps)//20, 1),
+            alpha=alpha_val,
+            label=f"{method} - {energy_type}"
+        )
+
+# Legend for energy types (markers & linewidths)
+energy_legend_lines = [
+    plt.Line2D([], [], color='black', linestyle='-', marker=energy_styles[etype]['marker'], 
+               linewidth=energy_styles[etype]['linewidth'], label=etype)
+    for etype in energy_styles
+]
+
+# Legend for methods (line styles)
+method_legend_lines = [
+    plt.Line2D([], [], color='black', linestyle=style, linewidth=2, label=method)
+    for method, style in line_styles.items() if method != 'bfgs'
+]
 
 plt.xlabel('Step')
 plt.ylabel('Energy')
 plt.title(f"Random Folder: {selected_folder} — Energy Components per Method")
 plt.grid(True)
-plt.legend(ncol=2, fontsize='small')
+plt.legend(handles=energy_legend_lines + method_legend_lines, ncol=2, fontsize='small')
 plt.tight_layout()
 plt.show()
+
 print("random done")
+
+
+
+
+
+
+
+
+
+
+
 
 
 # -----
@@ -189,8 +276,6 @@ target_path = r'.\f32_maxD3_lr0.005_ep1000_bs50_it3_nbf32_co3.0_tr1400_val200_fw
 target_folder = os.path.normpath(target_path).replace('\\', '/')
 # We only care about the end of the path
 target_folder_end = '/'.join(target_folder.split('/')[-1:])  # or use more parts like [-2:] if you want more context
-
-# Find the matching folder key in data
 matching_folder = None
 for folder_key in data.keys():
     folder_key_norm = folder_key.replace('\\', '/')
@@ -204,71 +289,89 @@ else:
     plt.figure(figsize=(10, 6))
     color = folder_colors.get(matching_folder, 'black')
     methods = data[matching_folder]
+
     for method, points in methods.items():
         if method == 'bfgs':  # skip bfgs
             continue
 
         steps, epots, ekins, etots = zip(*points)
 
-        # Plot each energy component with different line styles
-        for energy_type, values, style in zip(
-            ['epot', 'ekin', 'etot'],
-            [epots, ekins, etots],
-            [energy_styles['epot'], energy_styles['ekin'], energy_styles['etot']]
-        ):
-            label = f"{method} - {energy_type}"
-            plt.plot(steps, values, linestyle=style, color=color)
+        for energy_type, values in zip(['epot', 'ekin', 'etot'], [epots, ekins, etots]):
+            style = energy_styles[energy_type]
+            alpha_val = 0.5 if energy_type == 'ekin' else 1.0
 
-    # Add legend explanation for energy types (black color to distinguish)
-    for energy_type, style in energy_styles.items():
-        plt.plot([], [], linestyle=style, color='black', label=energy_type)
+            plt.plot(
+                steps,
+                values,
+                linestyle=line_styles.get(method, '-'),
+                color=color,
+                marker=style['marker'],
+                linewidth=style['linewidth'],
+                markevery=max(len(steps)//20, 1),
+                alpha=alpha_val,
+                label=f"{method} - {energy_type}"
+            )
+
+    # Legend handles for energy types (markers & linewidth)
+    energy_legend_lines = [
+        plt.Line2D([], [], color='black', linestyle='-', marker=energy_styles[etype]['marker'], 
+                   linewidth=energy_styles[etype]['linewidth'], label=etype)
+        for etype in energy_styles
+    ]
+
+    # Legend handles for methods (line styles)
+    method_legend_lines = [
+        plt.Line2D([], [], color='black', linestyle=style, linewidth=2, label=method)
+        for method, style in line_styles.items() if method != 'bfgs'
+    ]
 
     plt.xlabel('Step')
     plt.ylabel('Energy (etot, epot, ekin)')
     plt.title(f"Folder: {matching_folder} (all methods except bfgs)")
     plt.grid(True)
-    plt.legend()
+    plt.legend(handles=energy_legend_lines + method_legend_lines, ncol=2, fontsize='small')
     plt.tight_layout()
     plt.show()
 
 
-# ------
-import re
-import matplotlib.pyplot as plt
-import random
 
-# Group folders by temperature
-temp_groups = {}
-for folder, methods in data.items():
-    match = re.search(r'temp(\d+)', folder)
-    if match:
-        temp = int(match.group(1))
-        temp_groups.setdefault(temp, []).append((folder, methods))
+# # ------
+# import re
+# import matplotlib.pyplot as plt
+# import random
 
-# Plot a separate figure for each temperature
-for temp, folders in temp_groups.items():
-    plt.figure(figsize=(10, 6))
-    for folder, methods in folders:
-        color = folder_colors.get(folder, 'black')
-        for method, points in methods.items():
-            if method == 'bfgs':
-                continue
-            steps, energies = zip(*points)
-            plt.plot(steps, energies, line_styles[method], color=color, alpha=0.7)
+# # Group folders by temperature
+# temp_groups = {}
+# for folder, methods in data.items():
+#     match = re.search(r'temp(\d+)', folder)
+#     if match:
+#         temp = int(match.group(1))
+#         temp_groups.setdefault(temp, []).append((folder, methods))
 
-    # Add legend for methods
-    for method, style in line_styles.items():
-        if method == 'bfgs':
-            continue
-        plt.plot([], [], style, color='black', label=method)
+# # Plot a separate figure for each temperature
+# for temp, folders in temp_groups.items():
+#     plt.figure(figsize=(10, 6))
+#     for folder, methods in folders:
+#         color = folder_colors.get(folder, 'black')
+#         for method, points in methods.items():
+#             if method == 'bfgs':
+#                 continue
+#             steps, energies = zip(*points)
+#             plt.plot(steps, energies, line_styles[method], color=color, alpha=0.7)
 
-    plt.xlabel('Step')
-    plt.ylabel('Energy (etot)')
-    plt.title(f"Energy Convergence at Temp = {temp}K")
-    plt.grid(True)
-    plt.legend()
-    plt.tight_layout()
-    plt.show()
+#     # Add legend for methods
+#     for method, style in line_styles.items():
+#         if method == 'bfgs':
+#             continue
+#         plt.plot([], [], style, color='black', label=method)
+
+#     plt.xlabel('Step')
+#     plt.ylabel('Energy (etot)')
+#     plt.title(f"Energy Convergence at Temp = {temp}K")
+#     plt.grid(True)
+#     plt.legend()
+#     plt.tight_layout()
+#     plt.show()
 ##
 
 
