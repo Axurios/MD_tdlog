@@ -335,6 +335,28 @@ else:
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# by low temperature :
 # # ------
 # import re
 # import matplotlib.pyplot as plt
@@ -373,14 +395,104 @@ else:
 #     plt.tight_layout()
 #     plt.show()
 ##
+import re
+import matplotlib.pyplot as plt
+
+# Group folders by temperature
+temp_groups = {}
+for folder, methods in data.items():
+    match = re.search(r'temp(\d+)', folder)
+    if match:
+        temp = int(match.group(1))
+        temp_groups.setdefault(temp, []).append((folder, methods))
+
+# Plot a separate figure for each temperature
+for temp, folders in temp_groups.items():
+    plt.figure(figsize=(10, 6))
+
+    for folder, methods in folders:
+        color = folder_colors.get(folder, 'black')
+
+        for method, points in methods.items():
+            if method == 'bfgs':
+                continue
+
+            steps, epots, ekins, etots = zip(*points)
+
+            for energy_type, values in zip(['epot', 'ekin', 'etot'], [epots, ekins, etots]):
+                style = energy_styles[energy_type]
+                alpha_val = 0.5 if energy_type == 'ekin' else 1.0
+
+                plt.plot(
+                    steps,
+                    values,
+                    linestyle=line_styles.get(method, '-'),
+                    color=color,
+                    marker=style['marker'],
+                    linewidth=style['linewidth'],
+                    markevery=max(len(steps)//20, 1),
+                    alpha=alpha_val,
+                    label=f"{method} - {energy_type}"
+                )
+
+    # Create legend handles for energy types (markers + linewidth)
+    energy_legend_lines = [
+        plt.Line2D([], [], color='black', linestyle='-', marker=energy_styles[etype]['marker'],
+                   linewidth=energy_styles[etype]['linewidth'], label=etype)
+        for etype in energy_styles
+    ]
+
+    # Create legend handles for methods (line styles)
+    method_legend_lines = [
+        plt.Line2D([], [], color='black', linestyle=style, linewidth=2, label=method)
+        for method, style in line_styles.items() if method != 'bfgs'
+    ]
+
+    plt.xlabel('Step')
+    plt.ylabel('Energy')
+    plt.title(f"Energy Convergence at Temp = {temp}K")
+    plt.grid(True)
+    plt.legend(handles=energy_legend_lines + method_legend_lines, ncol=2, fontsize='small')
+    plt.tight_layout()
+    plt.show()
 
 
 
 
-# Write processed file paths to a text file
-with open('processed_files.txt', 'w') as f:
-    for path in processed_paths:
-        f.write(path + '\n')
+
+
+
+
+
+
+
+# by stability/no variations after a bit
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# # Write processed file paths to a text file
+# with open('processed_files.txt', 'w') as f:
+#     for path in processed_paths:
+#         f.write(path + '\n')
 
 
 """
