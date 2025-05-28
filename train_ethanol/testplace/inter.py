@@ -120,6 +120,12 @@ def prepare_datasets(key, num_train, num_valid):
 def prepare_calibration_dataset(filename, mean_energy, num_calib=200):
     kcal_to_ev = 0.0433641153088  # conversion factor from kcal/mol to eV
     dataset = np.load(filename)
+    
+    num_data = len(dataset['E'])
+    if num_calib > num_data:
+     raise RuntimeError(
+         f'dataset only contains {num_data} points, requested num_calib={num_calib}')
+    
     calib_data = dict(
         energy=jnp.asarray(dataset['E'][-num_calib:, 0] - mean_energy)*kcal_to_ev,
         forces=jnp.asarray(dataset['F'][-num_calib:])*kcal_to_ev,
