@@ -415,12 +415,6 @@ mixed_params = flax.serialization.from_bytes(dummy_params, mixed_serialized_para
 # print(params)
 
 #params = fisher_params
-
-
-
-
-
-
 #params = mixed_params
 params = default_params
 @jax.jit
@@ -503,7 +497,7 @@ def run_md_simulation(params, tag):
         potential_energy[i] = atoms.get_potential_energy()
         kinetic_energy[i] = atoms.get_kinetic_energy()
         total_energy[i] = atoms.get_total_energy()
-        if i % 100 == 0:
+        if i % 1000 == 0:
             print(f"[{tag}] step {i:5d} epot {potential_energy[i]: 5.3f} ekin {kinetic_energy[i]: 5.3f} etot {total_energy[i]: 5.3f}")
 
     # Export results

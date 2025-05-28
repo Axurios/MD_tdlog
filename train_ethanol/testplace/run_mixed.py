@@ -415,14 +415,7 @@ mixed_params = flax.serialization.from_bytes(dummy_params, mixed_serialized_para
 # print(params)
 
 #params = fisher_params
-
-
-
-
-
-
-#params = mixed_params
-params = default_params
+params = mixed_params
 @jax.jit
 def evaluate_energies_and_forces(atomic_numbers, positions, dst_idx, src_idx):
     # print(params)
@@ -503,7 +496,7 @@ def run_md_simulation(params, tag):
         potential_energy[i] = atoms.get_potential_energy()
         kinetic_energy[i] = atoms.get_kinetic_energy()
         total_energy[i] = atoms.get_total_energy()
-        if i % 100 == 0:
+        if i % 1000 == 0:
             print(f"[{tag}] step {i:5d} epot {potential_energy[i]: 5.3f} ekin {kinetic_energy[i]: 5.3f} etot {total_energy[i]: 5.3f}")
 
     # Export results
@@ -576,8 +569,8 @@ for i in range(num_steps):
 
 
 #run_results["fisher_results"] = run_md_simulation(fisher_params, tag="fisher")
-#run_results["mixed_results"] = run_md_simulation(mixed_params, tag="mixed")
-run_results["default_results"] = run_md_simulation(default_params, tag="default")
+run_results["mixed_results"] = run_md_simulation(mixed_params, tag="mixed")
+#run_results["default_results"] = run_md_simulation(default_params, tag="default")
 
 
 xml_res = XMLManager(run_results_path, mode='writing')
