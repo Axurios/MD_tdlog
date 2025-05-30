@@ -139,15 +139,13 @@ class MessagePassingModel(nn.Module):
       else:
         # In intermediate iterations, the message-pass should consider all possible coupling paths.
         y = e3x.nn.MessagePass()(x, basis, dst_idx=dst_idx, src_idx=src_idx)
-        y = e3x.nn.add(x, y)
-
-        # Atom-wise refinement MLP.
-        y = e3x.nn.Dense(self.features)(y)
-        y = e3x.nn.silu(y)
-        y = e3x.nn.Dense(self.features, kernel_init=jax.nn.initializers.zeros)(y)
-
-        # Residual connection.
-        x = e3x.nn.add(x, y)
+      y = e3x.nn.add(x, y)
+      # Atom-wise refinement MLP.
+      y = e3x.nn.Dense(self.features)(y)
+      y = e3x.nn.silu(y)
+      y = e3x.nn.Dense(self.features, kernel_init=jax.nn.initializers.zeros)(y)
+      # Residual connection.
+      x = e3x.nn.add(x, y)
 
     # 5. Predict atomic energies with an ordinary dense layer.
     element_bias = self.param('element_bias', lambda rng, shape: jnp.zeros(shape), (self.max_atomic_number+1))

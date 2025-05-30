@@ -169,7 +169,7 @@ def write_all_combinations(hyperparam_options, use_xml=True):
             # or use shutil.copy2(source_db_file, target_db_file) to copy
 
         print(f"Created run in {target_folder}")
-        write_jsub(job_name="my-test-job", time_limit="06:30:00", filename=target_folder+'/jsub')
+        write_jsub(job_name="myjob", time_limit="07:30:00", filename=target_folder+'/jsub')
 
     meta_xml = MetaXML(os.path.join(base_dir,'meta.xml'),
                        list_folder=list_folder,
@@ -218,22 +218,22 @@ mode = args.mode
 # Example usage
 if __name__ == "__main__":
     hyperparam_options = {
-        "features": [16, 32],
+        "features": [ 32],
         "max_degree": [3],
-        "learning_rate": [0.001, 0.01],
-        "num_epochs": [800],
+        "learning_rate": [0.005],
+        "num_epochs": [1000],
         "batch_size": [50],
 
         "num_iterations" : [3],
         "num_basis_functions" : [32],
-        "cutoff" : [3.0],
+        "cutoff" : [3.0,5.0],
         "num_train" : [1400],
         "num_valid" : [200],
         "forces_weight" : [1.0],
         "run_num_train":[1000],
         "run_num_valid":[100],
         "num_steps":[1000000],
-        "temperature" : [1000],
+        "temperature" : [500,1000],
         "repeat": np.arange(30).tolist()
     }
 
