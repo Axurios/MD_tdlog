@@ -47,9 +47,10 @@ hyperparams = {
   "num_iterations" : 3,
   "num_basis_functions" : 32, #16,
   "cutoff" : 5.0,
+  "num_calib": 200, 
   "run_num_train" : 900,
   "run_num_valid" : 100,
-  "timestep_fs" : 1.0,
+  "timestep_fs" : 0.5,
   "num_steps" : 400,
   "temperature" : 1000
 }
@@ -456,8 +457,8 @@ class MessagePassingCalculator(ase_calc.Calculator):
 
         # Save in self.results! This is critical
         self.results = {
-            "energy": energy_np * ase.units.kcal / ase.units.mol,
-            "forces": forces_np * ase.units.kcal / ase.units.mol
+            "energy": energy_np * 1.0, # ase.units.kcal / ase.units.mol,
+            "forces": forces_np * 1.0  #ase.units.kcal / ase.units.mol
         }
 
 
@@ -484,14 +485,14 @@ def run_md_simulation(params, tag):
     integrator = VelocityVerlet(atoms, timestep=timestep_fs * ase.units.fs)
 
     # Storage
-    frames = np.zeros((num_steps, len(atoms), 3))
+    #frames = np.zeros((num_steps, len(atoms), 3))
     potential_energy = np.zeros(num_steps)
     kinetic_energy = np.zeros(num_steps)
     total_energy = np.zeros(num_steps)
 
     for i in range(num_steps):
         integrator.run(1)
-        frames[i] = atoms.get_positions()
+        #frames[i] = atoms.get_positions()
         potential_energy[i] = atoms.get_potential_energy()
         kinetic_energy[i] = atoms.get_kinetic_energy()
         total_energy[i] = atoms.get_total_energy()
@@ -501,7 +502,7 @@ def run_md_simulation(params, tag):
     # Export results
     tag_results = {
         "time": np.arange(num_steps)*timestep_fs,
-        "frames": frames,
+        #"frames": frames,
         "potential_energy": potential_energy,
         "kinetic_energy": kinetic_energy,
         "total_energy": total_energy
@@ -566,15 +567,32 @@ for i in range(num_steps):
 # run_results["kinetic_energy"] = kinetic_energy
 # run_results["total_energy"] = total_energy
 
+def save_energies_npz(results, filename):
+    np.savez(
+        filename,
+        time=results["time"],
+        potential_energy=results["potential_energy"],
+        kinetic_energy=results["kinetic_energy"],
+        total_energy=results["total_energy"],
+    )
+
+
+#run_results["fisher_results"] = run_md_simulation(fisher_params, tag="fisher")
+#save_energies_npz(run_results["fisher_results"], "fisher_energies.npz")
+
+#run_results["mixed_results"] = run_md_simulation(mixed_params, tag="mixed")
+#save_energies_npz(run_results["mixed_results"], "mixed_energies.npz")
+
+run_results["default_results"] = run_md_simulation(default_params, tag="default")
+save_energies_npz(run_results["default_results"], "default_energies.npz")
 
 #run_results["fisher_results"] = run_md_simulation(fisher_params, tag="fisher")
 #run_results["mixed_results"] = run_md_simulation(mixed_params, tag="mixed")
-run_results["default_results"] = run_md_simulation(default_params, tag="default")
+#run_results["default_results"] = run_md_simulation(default_params, tag="default")
 
 
 xml_res = XMLManager(run_results_path, mode='writing')
 xml_res.generate_xml(run_results)
-
 
 
 #import matplotlib.pyplot as plt

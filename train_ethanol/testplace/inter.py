@@ -36,6 +36,8 @@ if not os.path.exists(filename):
     print(f"Downloading {filename} (this may take a while)...")
     urllib.request.urlretrieve(f"http://www.quantum-machine.org/gdml/data/npz/{filename}", filename)
 
+
+
 # --- Hyperparameters ---
 hyperparams = {
     "features" : 32,
@@ -43,12 +45,12 @@ hyperparams = {
     "num_iterations" : 3,
     "num_basis_functions" : 32,
     "cutoff" : 3.0,
-
     "num_train" : 200,
     "num_valid" : 25,
     "num_epochs" : 20,  # short for testing; increase as needed
     "learning_rate" : 0.01,
     "forces_weight" : 1.0,
+    "num_calib" : 200,
     "batch_size" : 20
 }
 
@@ -178,11 +180,11 @@ class MessagePassingModel(nn.Module):
                 x = e3x.nn.change_max_degree_or_type(x, max_degree=0, include_pseudotensors=False)
             else:
                 y = e3x.nn.MessagePass()(x, basis, dst_idx=dst_idx, src_idx=src_idx)
-                y = e3x.nn.add(x, y)
-                y = e3x.nn.Dense(self.features)(y)
-                y = e3x.nn.silu(y)
-                y = e3x.nn.Dense(self.features, kernel_init=jax.nn.initializers.zeros)(y)
-                x = e3x.nn.add(x, y)
+            y = e3x.nn.add(x, y)
+            y = e3x.nn.Dense(self.features)(y)
+            y = e3x.nn.silu(y)
+            y = e3x.nn.Dense(self.features, kernel_init=jax.nn.initializers.zeros)(y)
+            x = e3x.nn.add(x, y)
 
         # 5. Predict atomic energies.
         #CPUvsGPU 
@@ -230,11 +232,11 @@ class MessagePassingModel(nn.Module):
                 x = e3x.nn.change_max_degree_or_type(x, max_degree=0, include_pseudotensors=False)
             else:
                 y = e3x.nn.MessagePass()(x, basis, dst_idx=dst_idx, src_idx=src_idx)
-                y = e3x.nn.add(x, y)
-                y = e3x.nn.Dense(self.features)(y)
-                y = e3x.nn.silu(y)
-                y = e3x.nn.Dense(self.features, kernel_init=jax.nn.initializers.zeros)(y)
-                x = e3x.nn.add(x, y)
+            y = e3x.nn.add(x, y)
+            y = e3x.nn.Dense(self.features)(y)
+            y = e3x.nn.silu(y)
+            y = e3x.nn.Dense(self.features, kernel_init=jax.nn.initializers.zeros)(y)
+            x = e3x.nn.add(x, y)
         # Aggregate atomic features to form a molecule-level descriptor.
         # CPU vs GPU 
         descriptor = jax.ops.segment_sum(x, segment_ids=batch_segments, num_segments=batch_size)
@@ -742,7 +744,7 @@ results["params"] = params
 
 
 # 4. Prepare calibration dataset
-calib_data = prepare_calibration_dataset(filename, mean_energy=mean_energy, num_calib=100)
+calib_data = prepare_calibration_dataset(filename, mean_energy=mean_energy, num_calib=num_calib)
 # Run calibration
 #theta_star = calibrate_model(params, message_passing_model, calib_data, beta=beta)
 # --- vectorized calibration call ---

@@ -30,14 +30,14 @@ def submit_job_in_folder(target_folder):
 
 def write_jsub(job_name="gpu-test", time_limit="05:00:00", filename="jsub"):
     content = f"""#!/bin/bash
-#SBATCH -A aih@v100               # account to charge
-#SBATCH -C v100-32g 
+#SBATCH -A aih@a100               # account to charge
+#SBATCH -C a100 
 #SBATCH --job-name={job_name}         # name of job
 #SBATCH --nodes=1                    # we request one node
 #SBATCH --ntasks-per-node=1          # with one task per node (= number of GPUs here)
 #SBATCH --gres=gpu:1                 # number of GPUs per node (max 8 with gpu_p2, gpu_p4, gpu_p5)
 #SBATCH --time={time_limit}
-#SBATCH --cpus-per-task=10           # nombre de CPU par tache (1/4 des CPU du noeud 4-GPU)
+#SBATCH --cpus-per-task=8            # nombre de CPU par tache (1/4 des CPU du noeud 4-GPU)
 ##SBATCH --hint=nomultithread 
 
 
@@ -53,13 +53,15 @@ module load cudnn/9.8.0.87-cuda
 
 python -u inter_copy.py  > out_train
 python -u run_fisher_copy.py  > out_run_fisher
-python -u run_mixed_copy.py  > out_run_mixed
+#python -u run_mixed_copy.py  > out_run_mixed
+cp out_run_fisher out_run_mixed 
 python -u run_default_copy.py  > out_run_default
 """
 
     with open(filename, "w") as f:
         f.write(content)
     #print(f"Wrote SLURM job script to '{filename}'")
+
 
 
 # Definit hyperparameters de base
@@ -74,11 +76,12 @@ hyperparams = {
     "num_epochs" : 20,  # short for testing; increase as needed
     "learning_rate" : 0.01,
     "forces_weight" : 1.0,
-    "batch_size" : 20,
-    "run_num_train":900,
-    "run_num_valid":100,
-    "timestep_fs": 1.0,
-    "num_steps" : 1000000,
+    "num_calib" : 200, 
+    "batch_size" : 20,   #<---until here concern train
+    "run_num_train":900, # this has no impact on run 
+    "run_num_valid":100, # this has no impact on run 
+    "timestep_fs": 0.5,
+    "num_steps" : 100000,
     "temperature" : 1000,
     "repeat" : 30,
 }
@@ -96,6 +99,7 @@ key_abbrev = {
     "cutoff": "co",
     "num_train": "tr",
     "num_valid": "val",
+    "num_calib": "ncb", 
     "forces_weight": "fw",
     "run_num_train": "runtr",
     "run_num_valid": "runval",
@@ -169,7 +173,7 @@ def write_all_combinations(hyperparam_options, use_xml=True):
             # or use shutil.copy2(source_db_file, target_db_file) to copy
 
         print(f"Created run in {target_folder}")
-        write_jsub(job_name="myjob", time_limit="07:30:00", filename=target_folder+'/jsub')
+        write_jsub(job_name="myjob", time_limit="08:30:00", filename=target_folder+'/jsub')
 
     meta_xml = MetaXML(os.path.join(base_dir,'meta.xml'),
                        list_folder=list_folder,
@@ -215,26 +219,31 @@ parser.add_argument('-m','--mode',default="build")
 args = parser.parse_args()
 mode = args.mode
 
+
+
+
 # Example usage
 if __name__ == "__main__":
     hyperparam_options = {
-        "features": [ 32],
-        "max_degree": [3],
-        "learning_rate": [0.005],
-        "num_epochs": [1000],
-        "batch_size": [50],
-
+        "features": [32, 64],
+        "max_degree": [2],
         "num_iterations" : [3],
         "num_basis_functions" : [32],
-        "cutoff" : [3.0,5.0],
-        "num_train" : [1400],
+        "cutoff" : [3.0],
+        "num_train" : [500, 1000],
         "num_valid" : [200],
-        "forces_weight" : [1.0],
+        "num_epochs": [10000],
+        "learning_rate": [0.01],
+        "forces_weight" : [0.1 ,1],
+        "num_calib" : [200, 1000], 
+        "batch_size": [50],
+        "timestep_fs": [0.5],
         "run_num_train":[1000],
         "run_num_valid":[100],
-        "num_steps":[1000000],
-        "temperature" : [500,1000],
-        "repeat": np.arange(30).tolist()
+        "timestep_fs": [0.5],
+        "num_steps":[600000],
+        "temperature" : [1000],
+        "repeat": np.arange(16).tolist()
     }
 
     nb_calc = -1
