@@ -81,7 +81,7 @@ hyperparams = {
     "run_num_train":900, # this has no impact on run 
     "run_num_valid":100, # this has no impact on run 
     "timestep_fs": 0.5,
-    "num_steps" : 100000,
+    "num_steps" : 1000,
     "temperature" : 1000,
     "repeat" : 30,
 }
@@ -225,7 +225,7 @@ mode = args.mode
 # Example usage
 if __name__ == "__main__":
     hyperparam_options = {
-        "features": [32, 64],
+        "features": [32],
         "max_degree": [2],
         "num_iterations" : [3],
         "num_basis_functions" : [32],
@@ -235,7 +235,7 @@ if __name__ == "__main__":
         "num_epochs": [10000],
         "learning_rate": [0.01],
         "forces_weight" : [0.1 ,1],
-        "num_calib" : [200, 1000], 
+        "num_calib" : [1000], 
         "batch_size": [50],
         "timestep_fs": [0.5],
         "run_num_train":[1000],

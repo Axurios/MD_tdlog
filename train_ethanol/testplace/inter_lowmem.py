@@ -199,7 +199,7 @@ class MessagePassingModel(nn.Module):
         # 6. Sum to total energy using modern API.
         #energy = jax.lax.segment_sum(atomic_energies, segment_ids=batch_segments, num_segments=batch_size)
         #energy = jax.ops.segment_sum(atomic_energies, segment_ids=batch_segments, num_segments=batch_size)
-        energy = jax.ops.segment_sum(atomic_energies, segment_ids=batch_segments, num_segments=batch_size)
+        energy = jax.ops.segment_sum(atomic_energies, segment_ids=batch_segments, num_segments=int(batch_size))
 
 
         return -jnp.sum(energy), energy
@@ -213,7 +213,7 @@ class MessagePassingModel(nn.Module):
         dst_idx = jnp.asarray(dst_idx)
         src_idx = jnp.asarray(src_idx)
         batch_segments = jnp.asarray(batch_segments)
-        batch_size = jnp.asarray(batch_size)
+        #batch_size = jnp.asarray(batch_size)
 
 
         positions_dst = e3x.ops.gather_dst(positions, dst_idx=dst_idx)
@@ -240,7 +240,7 @@ class MessagePassingModel(nn.Module):
             x = e3x.nn.add(x, y)
         # Aggregate atomic features to form a molecule-level descriptor.
         # CPU vs GPU 
-        descriptor = jax.ops.segment_sum(x, segment_ids=batch_segments, num_segments=batch_size)
+        descriptor = jax.ops.segment_sum(x, segment_ids=batch_segments, num_segments=int(batch_size))
         #descriptor = jax.lax.segment_sum(x, segment_ids=batch_segments, num_segments=batch_size)
         return descriptor
 
@@ -393,7 +393,7 @@ class MessagePassingModel(nn.Module):
 #    return T, c
 
 # JIT – une seule passe sur un snapshot
-@functools.partial(jax.jit, static_argnames=("beta",))
+@functools.partial(jax.jit, static_argnums=(1, 5 ))
 def _one_calib_jit(params, model, pos, force, atomic_numbers, beta):
     num_atoms = pos.shape[0]
     batch_segments = jnp.zeros(num_atoms, dtype=jnp.int32)
@@ -709,33 +709,47 @@ def train_model(key, model, train_data, valid_data, num_epochs, learning_rate, f
 #    c_avg = c_sum / n
 #    return jnp.linalg.solve(T_avg, c_avg)
 
+
+# 2) nouvelle version de calibrate_model_stream
 def calibrate_model_stream(params, model, data, beta):
-    """Calibrage efficace : scan JIT, mémoire ~ D×D."""
+    """Scan JIT : rapide mais mémoire ≈ D²."""
     positions = data["positions"]
     forces    = data["forces"]
-    atomic_z  = data["atomic_numbers"]      # identique pour chaque snapshot sur MD17
+    atomic_z  = data["atomic_numbers"]          # identique pour tous les snapshots
 
+    # appel témoin pour connaître shape / dte
+    init_T, init_c = _one_calib_jit(
+        params, model,
+        positions[0],           # premier snapshot
+        forces[0],
+        atomic_z,
+        beta
+    )
+    # -------------------------------------------------------------------
+
+    # accumulateurs initialisés à 0 avec la bonne forme
+    T0 = jnp.zeros_like(init_T)
+    c0 = jnp.zeros_like(init_c)
+
+    # corps du scan
     def scan_body(carry, inputs):
-        pos, frc = inputs
         T_sum, c_sum = carry
+        pos, frc     = inputs
         T, c = _one_calib_jit(params, model, pos, frc, atomic_z, beta)
         return (T_sum + T, c_sum + c), None
 
     (T_sum, c_sum), _ = jax.lax.scan(
         scan_body,
-        (jnp.zeros_like(_one_calib_jit(
-            params, model, positions[0], forces[0], atomic_z, beta
-        )[0]),            # init T_sum shape (D,D)
-         jnp.zeros_like(_one_calib_jit(
-            params, model, positions[0], forces[0], atomic_z, beta
-        )[1])),           # init c_sum shape (D,)
-        (positions, forces)
+        (T0, c0),                       # état initial
+        (positions, forces)             # séquence d’entrée
     )
 
     n = positions.shape[0]
     T_avg = T_sum / n
     c_avg = c_sum / n
     return jnp.linalg.solve(T_avg, c_avg)
+
+
 
 def calibrate_model(params, model, dataset, beta=beta):
     """
@@ -819,7 +833,7 @@ def calibrated_energy(params, theta, model, atomic_numbers, positions, dst_idx, 
     if element_bias is not None and atomic_numbers is not None:
         atomic_biases = element_bias[atomic_numbers]
         #energy_from_bias = jax.lax.segment_sum(atomic_biases, segment_ids=batch_segments, num_segments=batch_size)
-        energy_from_bias = jax.ops.segment_sum(atomic_biases, segment_ids=batch_segments, num_segments=batch_size)
+        energy_from_bias = jax.ops.segment_sum(atomic_biases, segment_ids=batch_segments, num_segments=int(batch_size))
         return energy_from_descriptor + energy_from_bias
 
     return energy_from_descriptor

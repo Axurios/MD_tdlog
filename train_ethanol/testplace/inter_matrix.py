@@ -245,81 +245,42 @@ class MessagePassingModel(nn.Module):
         return descriptor
 
     # New method: extract descriptor and its gradient with respect to positions.
-#old_big_memory     @nn.compact
-#old_big_memory     def extract_descriptor_and_gradient(self, atomic_numbers, positions, dst_idx, src_idx, batch_segments, batch_size):
-#old_big_memory         # --- Cast everything safely to JAX arrays ---
-#old_big_memory         atomic_numbers = jnp.asarray(atomic_numbers)
-#old_big_memory         positions = jnp.asarray(positions)
-#old_big_memory         dst_idx = jnp.asarray(dst_idx)
-#old_big_memory         src_idx = jnp.asarray(src_idx)
-#old_big_memory         batch_segments = jnp.asarray(batch_segments)
-#old_big_memory         batch_size = jnp.asarray(batch_size)
-#old_big_memory     
-#old_big_memory         descriptor = self.extract_descriptor(atomic_numbers, positions, dst_idx, src_idx, batch_segments, batch_size)
-#old_big_memory         
-#old_big_memory         pos_shape = positions.shape
-#old_big_memory         pos_flat = positions.reshape(-1)
-#old_big_memory     
-#old_big_memory         variables = self.scope.variables()
-#old_big_memory     
-#old_big_memory         def desc_fn(pos_flat):
-#old_big_memory             pos_reshaped = pos_flat.reshape(pos_shape)
-#old_big_memory             mod = self
-#old_big_memory             desc = mod.apply(
-#old_big_memory                 variables,
-#old_big_memory                 atomic_numbers,
-#old_big_memory                 pos_reshaped,
-#old_big_memory                 dst_idx,
-#old_big_memory                 src_idx,
-#old_big_memory                 batch_segments,
-#old_big_memory                 batch_size,
-#old_big_memory                 method=mod.extract_descriptor
-#old_big_memory             )
-#old_big_memory             return jnp.ravel(desc[0])
-#old_big_memory     
-#old_big_memory         descriptor_dim = descriptor.shape[-1]
-#old_big_memory         G = jax.vmap(lambda i: jax.grad(lambda x: desc_fn(x)[i])(pos_flat))(jnp.arange(descriptor_dim))
-#old_big_memory     
-#old_big_memory         return descriptor, G
-
- # NEW / REPLACED
     @nn.compact
-    def extract_descriptor_and_gradient(
-        self, atomic_numbers, positions,
-        dst_idx, src_idx, batch_segments, batch_size
-    ):
-        # cast to jnp
+    def extract_descriptor_and_gradient(self, atomic_numbers, positions, dst_idx, src_idx, batch_segments, batch_size):
+        # --- Cast everything safely to JAX arrays ---
         atomic_numbers = jnp.asarray(atomic_numbers)
-        positions      = jnp.asarray(positions)
-
-        # descriptor
-        descriptor = self.extract_descriptor(
-            atomic_numbers, positions, dst_idx, src_idx,
-            batch_segments, batch_size
-        )
-
-        # ---- full Jacobian in one reverse-mode call ----
+        positions = jnp.asarray(positions)
+        dst_idx = jnp.asarray(dst_idx)
+        src_idx = jnp.asarray(src_idx)
+        batch_segments = jnp.asarray(batch_segments)
+        batch_size = jnp.asarray(batch_size)
+    
+        descriptor = self.extract_descriptor(atomic_numbers, positions, dst_idx, src_idx, batch_segments, batch_size)
+        
         pos_shape = positions.shape
-        pos_flat  = positions.reshape(-1)
-
+        pos_flat = positions.reshape(-1)
+    
         variables = self.scope.variables()
-
-        def desc_fn(pflat):
-            pos = pflat.reshape(pos_shape)
-            return self.apply(
+    
+        def desc_fn(pos_flat):
+            pos_reshaped = pos_flat.reshape(pos_shape)
+            mod = self
+            desc = mod.apply(
                 variables,
-                atomic_numbers, pos,
-                dst_idx, src_idx,
-                batch_segments, batch_size,
-                method=self.extract_descriptor
-            ).ravel()                               # (D_desc,)
-
-        G = jax.jacrev(desc_fn)(pos_flat)           # (D_desc , 3N)
-
+                atomic_numbers,
+                pos_reshaped,
+                dst_idx,
+                src_idx,
+                batch_segments,
+                batch_size,
+                method=mod.extract_descriptor
+            )
+            return jnp.ravel(desc[0])
+    
+        descriptor_dim = descriptor.shape[-1]
+        G = jax.vmap(lambda i: jax.grad(lambda x: desc_fn(x)[i])(pos_flat))(jnp.arange(descriptor_dim))
+    
         return descriptor, G
-
-
-
 
     # This method computes forces using the energy function.
     @nn.compact
@@ -349,77 +310,35 @@ class MessagePassingModel(nn.Module):
 
 # ———————— vectorized per‐sample calibration snippet ————————
 
-#old_big_memory def one_calib(params, model, pos, force, atomic_numbers, beta):
-#old_big_memory     # build per‐sample segment indices
-#old_big_memory     num_atoms = pos.shape[0]
-#old_big_memory     batch_segments = jnp.zeros(num_atoms, dtype=jnp.int32)
-#old_big_memory     dst_idx, src_idx = e3x.ops.sparse_pairwise_indices(num_atoms)
-#old_big_memory 
-#old_big_memory     # extract descriptor + gradient for this one snapshot
-#old_big_memory     descriptor, G = model.apply(
-#old_big_memory         params,
-#old_big_memory         atomic_numbers,
-#old_big_memory         pos,
-#old_big_memory         dst_idx,
-#old_big_memory         src_idx,
-#old_big_memory         batch_segments,
-#old_big_memory         1,
-#old_big_memory         method=model.extract_descriptor_and_gradient
-#old_big_memory     )
-#old_big_memory 
-#old_big_memory     f = -force.reshape(-1)
-#old_big_memory     T = beta**2 * (G @ G.T)
-#old_big_memory     c = beta**2 * (G @ f)
-#old_big_memory     return T, c
-
-## NEW / REPLACED
-#def _one_calib(params, model, pos, force, atomic_numbers, beta):
-#    """Return T = β² G Gᵀ and c = β² G (−f) for a single snapshot."""
-#    num_atoms      = pos.shape[0]
-#    batch_segments = jnp.zeros(num_atoms, dtype=jnp.int32)
-#    dst_idx, src_idx = e3x.ops.sparse_pairwise_indices(num_atoms)
-#
-#    _, G = model.apply(
-#        params,
-#        atomic_numbers, pos,
-#        dst_idx, src_idx,
-#        batch_segments, 1,
-#        method=model.extract_descriptor_and_gradient
-#    )
-#
-#    f = -force.reshape(-1)
-#    T = beta**2 * (G @ G.T)
-#    c = beta**2 * (G @ f)
-#    return T, c
-
-# JIT – une seule passe sur un snapshot
-@functools.partial(jax.jit, static_argnames=("beta",))
-def _one_calib_jit(params, model, pos, force, atomic_numbers, beta):
+def one_calib(params, model, pos, force, atomic_numbers, beta):
+    # build per‐sample segment indices
     num_atoms = pos.shape[0]
     batch_segments = jnp.zeros(num_atoms, dtype=jnp.int32)
     dst_idx, src_idx = e3x.ops.sparse_pairwise_indices(num_atoms)
 
-    # descriptor + jacobien (jacrev) -> G
-    _, G = model.apply(
+    # extract descriptor + gradient for this one snapshot
+    descriptor, G = model.apply(
         params,
-        atomic_numbers, pos,
-        dst_idx, src_idx,
-        batch_segments, 1,
+        atomic_numbers,
+        pos,
+        dst_idx,
+        src_idx,
+        batch_segments,
+        1,
         method=model.extract_descriptor_and_gradient
     )
 
     f = -force.reshape(-1)
-    T = beta**2 * (G @ G.T)          # (D,D)
-    c = beta**2 * (G @ f)            # (D,)
+    T = beta**2 * (G @ G.T)
+    c = beta**2 * (G @ f)
     return T, c
 
-
-## vmap over all calibration samples in one go:
-#v_one = jax.vmap(
-#    one_calib,
-#    in_axes=(None, None, 0, 0, None, None),
-#    out_axes=(0, 0),
-#)
+# vmap over all calibration samples in one go:
+v_one = jax.vmap(
+    one_calib,
+    in_axes=(None, None, 0, 0, None, None),
+    out_axes=(0, 0),
+)
 
 # --- Batch preparation, loss, and training functions ---
 def prepare_batches(key, data, batch_size):
@@ -690,52 +609,8 @@ def train_model(key, model, train_data, valid_data, num_epochs, learning_rate, f
 
 
 
-## NEW / REPLACED
-#def calibrate_model_stream(params, model, data, beta):
-#    """Stream over calibration set – no giant Jacobian stack."""
-#    T_sum = 0.0
-#    c_sum = 0.0
-#    n     = data['positions'].shape[0]
-#
-#    for pos, frc in zip(data['positions'], data['forces']):
-#        T, c = _one_calib(
-#            params, model, pos, frc,
-#            data['atomic_numbers'], beta
-#        )
-#        T_sum += T
-#        c_sum += c
-#
-#    T_avg = T_sum / n
-#    c_avg = c_sum / n
-#    return jnp.linalg.solve(T_avg, c_avg)
 
-def calibrate_model_stream(params, model, data, beta):
-    """Calibrage efficace : scan JIT, mémoire ~ D×D."""
-    positions = data["positions"]
-    forces    = data["forces"]
-    atomic_z  = data["atomic_numbers"]      # identique pour chaque snapshot sur MD17
 
-    def scan_body(carry, inputs):
-        pos, frc = inputs
-        T_sum, c_sum = carry
-        T, c = _one_calib_jit(params, model, pos, frc, atomic_z, beta)
-        return (T_sum + T, c_sum + c), None
-
-    (T_sum, c_sum), _ = jax.lax.scan(
-        scan_body,
-        (jnp.zeros_like(_one_calib_jit(
-            params, model, positions[0], forces[0], atomic_z, beta
-        )[0]),            # init T_sum shape (D,D)
-         jnp.zeros_like(_one_calib_jit(
-            params, model, positions[0], forces[0], atomic_z, beta
-        )[1])),           # init c_sum shape (D,)
-        (positions, forces)
-    )
-
-    n = positions.shape[0]
-    T_avg = T_sum / n
-    c_avg = c_sum / n
-    return jnp.linalg.solve(T_avg, c_avg)
 
 def calibrate_model(params, model, dataset, beta=beta):
     """
@@ -885,42 +760,25 @@ results["params"] = params
 
 
 
-#old_big_memory # 4. Prepare calibration dataset
-#old_big_memory calib_data = prepare_calibration_dataset(filename, mean_energy=mean_energy, num_calib=num_calib)
-#old_big_memory # Run calibration
-#old_big_memory #theta_star = calibrate_model(params, message_passing_model, calib_data, beta=beta)
-#old_big_memory # --- vectorized calibration call ---
-#old_big_memory T_samples, c_samples = v_one(
-#old_big_memory     params,
-#old_big_memory     message_passing_model,
-#old_big_memory     calib_data['positions'],      # shape [n_calib, natoms, 3]
-#old_big_memory     calib_data['forces'],         # shape [n_calib, natoms, 3]
-#old_big_memory     calib_data['atomic_numbers'], # shape [natoms]
-#old_big_memory     beta
-#old_big_memory )
-#old_big_memory # compute averages and solve
-#old_big_memory T_avg = jnp.mean(T_samples, axis=0)
-#old_big_memory c_avg = jnp.mean(c_samples, axis=0)
-#old_big_memory theta_star = jnp.linalg.solve(T_avg, c_avg)
-#old_big_memory 
-#old_big_memory results["theta_fisher"] = theta_star
-
-
 # 4. Prepare calibration dataset
 calib_data = prepare_calibration_dataset(filename, mean_energy=mean_energy, num_calib=num_calib)
-
-# --- memory-friendly calibration (streams over snapshots) ---
-theta_star = calibrate_model_stream(
-    params,              # trained network parameters
+# Run calibration
+#theta_star = calibrate_model(params, message_passing_model, calib_data, beta=beta)
+# --- vectorized calibration call ---
+T_samples, c_samples = v_one(
+    params,
     message_passing_model,
-    calib_data,
-    beta=beta
+    calib_data['positions'],      # shape [n_calib, natoms, 3]
+    calib_data['forces'],         # shape [n_calib, natoms, 3]
+    calib_data['atomic_numbers'], # shape [natoms]
+    beta
 )
+# compute averages and solve
+T_avg = jnp.mean(T_samples, axis=0)
+c_avg = jnp.mean(c_samples, axis=0)
+theta_star = jnp.linalg.solve(T_avg, c_avg)
 
 results["theta_fisher"] = theta_star
-
-
-
 
 # 1. Copy and inject theta_star into params
 params_fisher = copy.deepcopy(params)
