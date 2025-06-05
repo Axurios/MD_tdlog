@@ -81,7 +81,7 @@ hyperparams = {
     "run_num_train":900, # this has no impact on run 
     "run_num_valid":100, # this has no impact on run 
     "timestep_fs": 0.5,
-    "num_steps" : 1000,
+    "num_steps" : 100000,
     "temperature" : 1000,
     "repeat" : 30,
 }
@@ -116,7 +116,7 @@ from itertools import product
 def write_all_combinations(hyperparam_options, use_xml=True):
     base_dir = os.path.dirname(os.path.abspath(__file__))
 
-    inter_file = os.path.join(base_dir, "inter.py")
+    inter_file = os.path.join(base_dir, "inter_lowmem.py")
     run_fisher_file = os.path.join(base_dir, "run_fisher.py")
     run_mixed_file = os.path.join(base_dir, "run_mixed.py")
     run_default_file = os.path.join(base_dir, "run_default.py")
@@ -173,7 +173,7 @@ def write_all_combinations(hyperparam_options, use_xml=True):
             # or use shutil.copy2(source_db_file, target_db_file) to copy
 
         print(f"Created run in {target_folder}")
-        write_jsub(job_name="myjob", time_limit="08:30:00", filename=target_folder+'/jsub')
+        write_jsub(job_name="myjob", time_limit="09:30:00", filename=target_folder+'/jsub')
 
     meta_xml = MetaXML(os.path.join(base_dir,'meta.xml'),
                        list_folder=list_folder,
@@ -225,25 +225,25 @@ mode = args.mode
 # Example usage
 if __name__ == "__main__":
     hyperparam_options = {
-        "features": [32],
+        "features": [32,64],
         "max_degree": [2],
         "num_iterations" : [3],
         "num_basis_functions" : [32],
         "cutoff" : [3.0],
         "num_train" : [500, 1000],
         "num_valid" : [200],
-        "num_epochs": [10000],
+        "num_epochs": [2000],
         "learning_rate": [0.01],
-        "forces_weight" : [0.1 ,1],
-        "num_calib" : [1000], 
+        "forces_weight" : [0.1],
+        "num_calib" : [200, 2000], 
         "batch_size": [50],
         "timestep_fs": [0.5],
         "run_num_train":[1000],
         "run_num_valid":[100],
         "timestep_fs": [0.5],
-        "num_steps":[600000],
-        "temperature" : [1000],
-        "repeat": np.arange(16).tolist()
+        "num_steps":[1000000],
+        "temperature" : [500, 1000],
+        "repeat": np.arange(20).tolist()
     }
 
     nb_calc = -1
